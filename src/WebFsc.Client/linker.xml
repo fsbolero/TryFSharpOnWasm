@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<linker>
+  <!-- Our application -->
+  <assembly fullname="WebFsc.Client"></assembly>
+  
+  <!-- Assemblies needed by FCS that illink would otherwise remove -->
+  <assembly fullname="netstandard"></assembly>
+  <assembly fullname="System.Console"></assembly>
+  <assembly fullname="System.Globalization"></assembly>
+  <assembly fullname="System.IO"></assembly>
+  <assembly fullname="System.Reflection"></assembly>
+  <assembly fullname="System.Runtime"></assembly>
+  <assembly fullname="System.Runtime.Extensions"></assembly>
+
+  <!-- Copy from microsoft.aspnetcore.blazor.build's BuiltInBclLinkerDescriptor.xml -->
+  <assembly fullname="mscorlib">
+    <!-- Preserve all methods on WasmRuntime, because these are called by JS-side code
+    to implement timers. Fixes https://github.com/aspnet/Blazor/issues/239 -->
+    <type fullname="System.Threading.WasmRuntime" />
+  </assembly>
+</linker>

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RunCommand>dotnet</RunCommand>
+    <RunArguments>blazor serve</RunArguments>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Compiler.fs" />
+    <Compile Include="Main.fs" />
+    <Compile Include="Startup.fs" />
+    <None Include="linker.xml" />
+    <BlazorLinkerDescriptor Include="linker.xml" />
+  </ItemGroup>
+  <ItemGroup />
+  <Target Name="CopyCustomFCS" AfterTargets="_BlazorCopyFilesToOutputDirectory">
+    <Copy SourceFiles="../../../fsharp.compiler.service/release/fcs/netstandard2.0/FSharp.Compiler.Service.dll" DestinationFolder="$(TargetDir)dist/_framework/_bin" />
+    <Copy SourceFiles="../../../blazor/src/Microsoft.AspNetCore.Blazor.Browser.JS/dist/blazor.webassembly.js" DestinationFolder="$(TargetDir)dist/_framework" />
+  </Target>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

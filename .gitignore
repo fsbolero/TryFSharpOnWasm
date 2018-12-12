@@ -1,0 +1,7 @@
+.paket/.store
+.paket/*.exe
+bin/
+obj/
+paket-files/
+.vs/
+*.user
