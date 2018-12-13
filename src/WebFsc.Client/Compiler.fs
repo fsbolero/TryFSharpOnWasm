@@ -19,8 +19,6 @@ type Compiler =
         Status: CompilerStatus
     }
 
-exception CompilationFailed of list<FSharpErrorInfo>
-
 module Compiler =
 
     let inFile = "/tmp/file.fsx"
@@ -41,9 +39,6 @@ module Compiler =
     let IsFailure (errors: seq<FSharpErrorInfo>) =
         errors
         |> Seq.exists (fun (x: FSharpErrorInfo) -> x.Severity = FSharpErrorSeverity.Error)
-
-    let FailIfError errors =
-        if IsFailure errors then raise (CompilationFailed errors)
 
     let DownloadFile (path: string) = async {
         printfn "Downloading output..."

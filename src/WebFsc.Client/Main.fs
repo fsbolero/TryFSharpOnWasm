@@ -75,8 +75,8 @@ let update message model =
             Messages = compiler.Messages
         },
         Cmd.batch [
-            Cmd.attemptTask Stdout.Clear () Error
-            Cmd.ofAsync run () RunFinished Error
+            Cmd.attemptTask ScreenOut.Clear () Error
+            Cmd.ofAsync (run >> ScreenOut.Wrap) () RunFinished Error
         ]
     | Compiled compiler ->
         { model with
@@ -84,7 +84,7 @@ let update message model =
             Compiler = compiler
             Messages = compiler.Messages
         },
-        Cmd.attemptTask Stdout.Clear () Error
+        Cmd.attemptTask ScreenOut.Clear () Error
     | RunFinished executor ->
         { model with Executor = executor },
         []
@@ -92,7 +92,7 @@ let update message model =
         { model with Messages = errors }, []
     | Error exn ->
         { model with Exception = Some exn },
-        Cmd.attemptTask Stdout.Clear () Error
+        Cmd.attemptTask ScreenOut.Clear () Error
     | SelectMessage message ->
         model,
         Cmd.attemptTask (selectMessage model) message Error
@@ -145,8 +145,7 @@ type MyApp() =
         | InitializeCompiler ->
             model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) () CompilerInitialized Error
         | CompilerInitialized compiler ->
-            Some (initModel compiler),
-            Cmd.attemptFunc Stdout.Init () Error
+            Some (initModel compiler), []
         | Message msg ->
             match model with
             | None -> model, [] // Shouldn't happen
@@ -166,3 +165,4 @@ type MyApp() =
         Program.mkProgram
             (fun _ -> None, Cmd.ofMsg InitializeCompiler)
             updateApp viewApp
+        |> Program.withConsoleTrace

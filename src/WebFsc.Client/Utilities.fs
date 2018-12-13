@@ -4,6 +4,7 @@ open System
 open System.IO
 open System.Threading
 open System.Threading.Tasks
+open System.Threading.Tasks
 
 module Cmd =
     open Elmish
@@ -33,7 +34,7 @@ module Async =
     let WithYield (a: Async<'T>) : Async<'T> =
         async.Bind(Async.Sleep(10), fun _ -> a)
 
-module Stdout =
+module ScreenOut =
     open Microsoft.JSInterop
 
     type Writer(isErr: bool) =
@@ -51,9 +52,21 @@ module Stdout =
             JSRuntime.Current.InvokeAsync("WebFsc.write", s, isErr)
             :> Task
 
-    let Init () =
-        Console.SetOut(new Writer(false))
-        Console.SetError(new Writer(true))
+    let private out = new Writer(false)
+    let private err = new Writer(true)
+
+    /// Run this task with its output redirected to the screen.
+    let Wrap (task: Async<_>) =
+        let normalOut = stdout
+        let normalErr = stderr
+        async {
+            Console.SetOut(out)
+            Console.SetError(err)
+            let! res = task
+            Console.SetOut(normalOut)
+            Console.SetError(normalErr)
+            return res
+        }
 
     let Clear () =
         JSRuntime.Current.InvokeAsync("WebFsc.clear")
