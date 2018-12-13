@@ -3,14 +3,17 @@
   <!-- Our application -->
   <assembly fullname="WebFsc.Client"></assembly>
   
-  <!-- Assemblies needed by FCS that illink would otherwise remove -->
+  <!-- Assemblies needed by FCS or that we want referenced, but illink would otherwise remove -->
   <assembly fullname="netstandard"></assembly>
+  <assembly fullname="System.Collections"></assembly>
   <assembly fullname="System.Console"></assembly>
   <assembly fullname="System.Globalization"></assembly>
   <assembly fullname="System.IO"></assembly>
+  <assembly fullname="System.Linq.Expressions"></assembly>
   <assembly fullname="System.Reflection"></assembly>
   <assembly fullname="System.Runtime"></assembly>
   <assembly fullname="System.Runtime.Extensions"></assembly>
+  <assembly fullname="System.Threading.Tasks"></assembly>
 
   <!-- Copy from microsoft.aspnetcore.blazor.build's BuiltInBclLinkerDescriptor.xml -->
   <assembly fullname="mscorlib">

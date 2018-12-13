@@ -9,18 +9,20 @@ open Bolero.Html
 
 type Model =
     {
-        text: string
-        compiler: Compiler
-        executor: Executor
-        exn: option<exn>
+        Text: string
+        Compiler: Compiler
+        Executor: Executor
+        Messages: list<FSharpErrorInfo>
+        Exception: option<exn>
     }
 
-let initModel =
+let initModel compiler =
     {
-        text = "printfn \"Hello, world!\""
-        compiler = Compiler.create ()
-        executor = Executor.create ()
-        exn = None
+        Text = "printfn \"Hello, world!\""
+        Compiler = compiler
+        Executor = Executor.create ()
+        Messages = []
+        Exception = None
     }
 
 type Message =
@@ -28,6 +30,7 @@ type Message =
     | Compile
     | Compiled of Compiler
     | RunFinished of Executor
+    | CheckErrors of list<FSharpErrorInfo>
     | Error of exn
     | SelectMessage of FSharpErrorInfo
 
@@ -45,8 +48,8 @@ let findPosition (line: int) (col: int) (text: string) =
 /// Select this message in the textarea.
 let selectMessage (model: Model) (message: FSharpErrorInfo) =
     JSRuntime.Current.InvokeAsync("WebFsc.selectMessage",
-        findPosition message.StartLineAlternate message.StartColumn model.text,
-        findPosition message.EndLineAlternate message.EndColumn model.text,
+        findPosition message.StartLineAlternate message.StartColumn model.Text,
+        findPosition message.EndLineAlternate message.EndColumn model.Text,
         message.StartLineAlternate, message.StartColumn,
         message.EndLineAlternate, message.EndColumn
     )
@@ -56,27 +59,40 @@ let selectMessage (model: Model) (message: FSharpErrorInfo) =
 let update message model =
     match message with
     | SetText text ->
-        { model with text = text }, []
+        { model with Text = text },
+        Cmd.ofSub <| fun dispatch ->
+            model.Compiler.TriggerCheck(text, dispatch << CheckErrors)
     | Compile ->
-        let compiler, run = model.compiler.Run(model.text)
-        { model with compiler = compiler },
+        let compiler, run = model.Compiler.Run(model.Text)
+        { model with Compiler = compiler },
         Cmd.ofAsync (run >> Async.WithYield) () Compiled Error
-    | Compiled ({ status = Succeeded (file, _) } as compiler) ->
-        let executor, run = model.executor.Run(file)
-        { model with exn = None; executor = executor; compiler = compiler },
+    | Compiled ({ Status = Succeeded (file, _) } as compiler) ->
+        let executor, run = model.Executor.Run(file)
+        { model with
+            Exception = None
+            Executor = executor
+            Compiler = compiler
+            Messages = compiler.Messages
+        },
         Cmd.batch [
-            Cmd.attemptTask Stdout.clear () Error
+            Cmd.attemptTask Stdout.Clear () Error
             Cmd.ofAsync run () RunFinished Error
         ]
     | Compiled compiler ->
-        { model with exn = None; compiler = compiler },
-        Cmd.attemptTask Stdout.clear () Error
+        { model with
+            Exception = None
+            Compiler = compiler
+            Messages = compiler.Messages
+        },
+        Cmd.attemptTask Stdout.Clear () Error
     | RunFinished executor ->
-        { model with executor = executor },
+        { model with Executor = executor },
         []
+    | CheckErrors errors ->
+        { model with Messages = errors }, []
     | Error exn ->
-        { model with exn = Some exn },
-        Cmd.attemptTask Stdout.clear () Error
+        { model with Exception = Some exn },
+        Cmd.attemptTask Stdout.Clear () Error
     | SelectMessage message ->
         model,
         Cmd.attemptTask (selectMessage model) message Error
@@ -96,29 +112,57 @@ let compilerMessage (msg: FSharpErrorInfo) dispatch =
 
 let view model dispatch =
     Main()
-        .Source(model.text, fun s -> dispatch (SetText s))
+        .Source(model.Text, fun s -> dispatch (SetText s))
         .Run(fun _ -> dispatch Compile)
-        .RunClass(if model.compiler.IsRunning then "is-loading" else "")
+        .RunClass(if model.Compiler.IsRunning then "is-loading" else "")
         .Messages(concat [
             text <|
-                match model.compiler.status with
+                match model.Compiler.Status with
                 | CompilerStatus.Standby -> "Ready."
                 | CompilerStatus.Running -> "Compiling..."
                 | CompilerStatus.Succeeded _ -> "Compilation succeeded."
                 | CompilerStatus.Failed _ -> "Compilation failed."
-            forEach (model.compiler.Messages
+            forEach (model.Messages
                     |> List.sortByDescending (fun msg -> msg.Severity))
                 (fun msg -> compilerMessage msg dispatch)
-            cond model.exn <| function
+            cond model.Exception <| function
                 | None -> empty
                 | Some e -> Main.SimpleMessage().Severity("Error").Message(string e).Elt()
         ])
         .Elt()
 
+type AppMessage =
+    | InitializeCompiler
+    | CompilerInitialized of Compiler
+    | Message of Message
+    | Error of exn
+
 type MyApp() =
-    inherit ProgramComponent<Model, Message>()
+    inherit ProgramComponent<option<Model>, AppMessage>()
+
+    let updateApp message model =
+        match message with
+        | InitializeCompiler ->
+            model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) () CompilerInitialized Error
+        | CompilerInitialized compiler ->
+            Some (initModel compiler),
+            Cmd.attemptFunc Stdout.Init () Error
+        | Message msg ->
+            match model with
+            | None -> model, [] // Shouldn't happen
+            | Some model ->
+                let model, cmd = update msg model
+                Some model, Cmd.map Message cmd
+        | Error exn ->
+            eprintfn "%A" exn
+            model, []
+
+    let viewApp model dispatch =
+        cond model <| function
+            | None -> text "Initializing compiler..."
+            | Some m -> view m (dispatch << Message)
 
     override this.Program =
         Program.mkProgram
-            (fun _ -> initModel, Cmd.attemptFunc Stdout.init () Error)
-            update view
+            (fun _ -> None, Cmd.ofMsg InitializeCompiler)
+            updateApp viewApp
