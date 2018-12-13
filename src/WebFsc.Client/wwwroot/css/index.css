@@ -5,30 +5,51 @@
 
 html, body, #main {
     height: 100%;
+    overflow: hidden;
 }
 
 #main > section {
     flex: 1;
+    background: #ddd;
+}
+
+.split-h {
     display: flex;
     flex-direction: row;
-    background: #ddd;
     margin-right: -5px;
 }
 
-#main > section > * {
+.split-h > * {
     flex: 1;
-}
-
-#editor, #messages {
-    font-family: monospace;
-    border: 0;
-    background: white;
-    font-size: 1rem;
     margin-right: 5px;
 }
 
-#editor {
+.split-v {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: -5px;
+}
+
+.split-v > * {
+    flex: 1;
+    margin-bottom: 5px;
+}
+
+#editor, #messages, #stdout {
+    background: white;
+    font-family: monospace;
+    border: 0;
+    font-size: 1rem;
     padding: 0.5em;
+    overflow: auto;
+}
+
+#stdout {
+    white-space: pre-wrap;
+}
+
+.stderr {
+    color: #e0420a;
 }
 
 #editor:focus {

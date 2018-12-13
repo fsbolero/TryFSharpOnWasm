@@ -12,17 +12,20 @@
         </div>
     </div>
 </nav>
-<section>
+<section class="split-h">
     <textarea id="editor" bind-onchange="${Source}" autofocus></textarea>
-    <div id="messages">
-        ${Messages}
-        <template id="CompilerMessage">
-            <a onclick="${Select}" class="compiler-message-link">
-                <div class="compiler-message ${Severity}"><b>(${StartLine},${StartColumn})-(${EndLine},${EndColumn})</b> ${Message}</div>
-            </a>
-        </template>
-        <template id="SimpleMessage">
-            <div class="compiler-message Error">${Message}</div>
-        </template>
+    <div id="outputs" class="split-v">
+        <div id="messages">
+            ${Messages}
+            <template id="CompilerMessage">
+                <a onclick="${Select}" class="compiler-message-link">
+                    <div class="compiler-message ${Severity}"><b>(${StartLine},${StartColumn})-(${EndLine},${EndColumn})</b> ${Message}</div>
+                </a>
+            </template>
+            <template id="SimpleMessage">
+                <div class="compiler-message ${Severity}">${Message}</div>
+            </template>
+        </div>
+        <div id="stdout">${Stdout}</div>
     </div>
 </section>

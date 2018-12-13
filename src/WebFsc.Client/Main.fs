@@ -11,8 +11,7 @@ type Model =
     {
         text: string
         compiler: Compiler
-        compiling: bool
-        messages: list<FSharpErrorInfo>
+        executor: Executor
         exn: option<exn>
     }
 
@@ -20,15 +19,15 @@ let initModel =
     {
         text = "printfn \"Hello, world!\""
         compiler = Compiler.create ()
-        compiling = false
-        messages = []
+        executor = Executor.create ()
         exn = None
     }
 
 type Message =
     | SetText of string
     | Compile
-    | Compiled of string * list<FSharpErrorInfo>
+    | Compiled of Compiler
+    | RunFinished of Executor
     | Error of exn
     | SelectMessage of FSharpErrorInfo
 
@@ -59,31 +58,28 @@ let update message model =
     | SetText text ->
         { model with text = text }, []
     | Compile ->
-        { model with compiling = true },
-        Cmd.ofAsync (fun m -> async {
-            do! Async.Sleep 100 // let the UI update and show loading
-            return! Compiler.run m.text m.compiler
-        }) model Compiled Error
-    | Compiled (file, messages) ->
-        { model with
-            messages = messages
-            exn = None
-            compiling = false },
-        Cmd.ofAsyncIgnore Compiler.loadAndRun file Error
-    | Error (CompilationFailed messages) ->
-        { model with
-            messages = messages
-            exn = None
-            compiling = false },
+        let compiler, run = model.compiler.Run(model.text)
+        { model with compiler = compiler },
+        Cmd.ofAsync (run >> Async.WithYield) () Compiled Error
+    | Compiled ({ status = Succeeded (file, _) } as compiler) ->
+        let executor, run = model.executor.Run(file)
+        { model with exn = None; executor = executor; compiler = compiler },
+        Cmd.batch [
+            Cmd.attemptTask Stdout.clear () Error
+            Cmd.ofAsync run () RunFinished Error
+        ]
+    | Compiled compiler ->
+        { model with exn = None; compiler = compiler },
+        Cmd.attemptTask Stdout.clear () Error
+    | RunFinished executor ->
+        { model with executor = executor },
         []
     | Error exn ->
-        { model with
-            exn = Some exn
-            compiling = false },
-        []
+        { model with exn = Some exn },
+        Cmd.attemptTask Stdout.clear () Error
     | SelectMessage message ->
         model,
-        Cmd.ofTaskIgnore (selectMessage model) message Error
+        Cmd.attemptTask (selectMessage model) message Error
 
 type Main = Template<"main.html">
 
@@ -102,13 +98,20 @@ let view model dispatch =
     Main()
         .Source(model.text, fun s -> dispatch (SetText s))
         .Run(fun _ -> dispatch Compile)
-        .RunClass(if model.compiling then "is-loading" else "")
+        .RunClass(if model.compiler.IsRunning then "is-loading" else "")
         .Messages(concat [
-            forEach (model.messages |> List.sortByDescending (fun msg -> msg.Severity))
+            text <|
+                match model.compiler.status with
+                | CompilerStatus.Standby -> "Ready."
+                | CompilerStatus.Running -> "Compiling..."
+                | CompilerStatus.Succeeded _ -> "Compilation succeeded."
+                | CompilerStatus.Failed _ -> "Compilation failed."
+            forEach (model.compiler.Messages
+                    |> List.sortByDescending (fun msg -> msg.Severity))
                 (fun msg -> compilerMessage msg dispatch)
             cond model.exn <| function
                 | None -> empty
-                | Some e -> Main.SimpleMessage().Message(string e).Elt()
+                | Some e -> Main.SimpleMessage().Severity("Error").Message(string e).Elt()
         ])
         .Elt()
 
@@ -116,5 +119,6 @@ type MyApp() =
     inherit ProgramComponent<Model, Message>()
 
     override this.Program =
-        Program.mkProgram (fun _ -> initModel, []) update view
-        |> Program.withConsoleTrace
+        Program.mkProgram
+            (fun _ -> initModel, Cmd.attemptFunc Stdout.init () Error)
+            update view

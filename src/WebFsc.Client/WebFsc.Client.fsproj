@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="Utilities.fs" />
     <Compile Include="Compiler.fs" />
+    <Compile Include="Executor.fs" />
     <Compile Include="Main.fs" />
     <Compile Include="Startup.fs" />
     <None Include="linker.xml" />
