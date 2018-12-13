@@ -1,0 +1,62 @@
+﻿#main {
+    display: flex;
+    flex-direction: column;
+}
+
+html, body, #main {
+    height: 100%;
+}
+
+#main > section {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    background: #ddd;
+    margin-right: -5px;
+}
+
+#main > section > * {
+    flex: 1;
+}
+
+#editor, #messages {
+    font-family: monospace;
+    border: 0;
+    background: white;
+    font-size: 1rem;
+    margin-right: 5px;
+}
+
+#editor {
+    padding: 0.5em;
+}
+
+#editor:focus {
+    outline: none;
+}
+ 
+.compiler-message {
+    padding: 0 5px;
+    white-space: pre-wrap;
+    font-family: monospace;
+}
+
+a.compiler-message-link {
+    color: inherit!important;
+}
+
+.compiler-message.Error {
+    background: #ff8c62;
+}
+
+a.compiler-message-link .compiler-message.Error:hover {
+    background: #e47f5b;
+}
+
+.compiler-message.Warning {
+    background: goldenrod;
+}
+
+a.compiler-message-link .compiler-message.Warning:hover {
+    background: #c39520;
+}

@@ -1,0 +1,28 @@
+﻿<nav class="navbar is-dark">
+    <div class="navbar-brand">
+        <a class="navbar-item" href="https://github.com/intellifactory/bolero">Bolero</a>
+    </div>
+    <div class="navbar-menu">
+        <div class="navbar-start">
+            <div class="navbar-item">
+                <div class="buttons">
+                    <a class="button is-success ${RunClass}" onclick="${Run}">Run</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+<section>
+    <textarea id="editor" bind-onchange="${Source}" autofocus></textarea>
+    <div id="messages">
+        ${Messages}
+        <template id="CompilerMessage">
+            <a onclick="${Select}" class="compiler-message-link">
+                <div class="compiler-message ${Severity}"><b>(${StartLine},${StartColumn})-(${EndLine},${EndColumn})</b> ${Message}</div>
+            </a>
+        </template>
+        <template id="SimpleMessage">
+            <div class="compiler-message Error">${Message}</div>
+        </template>
+    </div>
+</section>
