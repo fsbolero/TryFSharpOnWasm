@@ -15,22 +15,45 @@ type Compiler =
     {
         Checker: FSharpChecker
         Options: FSharpProjectOptions
+        CheckResults: FSharpCheckProjectResults
         Sequence: int
         Status: CompilerStatus
     }
 
 module Compiler =
 
-    let inFile = "/tmp/file.fsx"
+    let projFile = "/tmp/out.fsproj"
+    let inFile = "/tmp/Main.fs"
+    let outFile = "/tmp/out.exe"
 
-    let Create () = async {
-        let checker = FSharpChecker.Create()
-        let! options, _ = checker.GetProjectOptionsFromScript(inFile, "")
-        // Do a dummy check to initialize the checker
-        let! _ = checker.ParseAndCheckFileInProject(inFile, 0, "", options)
+    let Options (checker: FSharpChecker) (outFile: string) =
+        checker.GetProjectOptionsFromCommandLineArgs(projFile, [|
+            "--simpleresolution"
+            "--optimize-"
+            "--noframework"
+            "--fullpaths"
+            "--warn:3"
+            "--target:exe"
+            inFile
+            "-r:/tmp/mscorlib.dll"
+            "-r:/tmp/System.dll"
+            "-r:/tmp/System.Core.dll"
+            "-r:/tmp/System.IO.dll"
+            "-r:/tmp/System.Runtime.dll"
+            "-o:" + outFile
+        |])
+
+    let Create source = async {
+        let checker = FSharpChecker.Create(keepAssemblyContents = true)
+        let options = Options checker outFile
+        File.WriteAllText(inFile, source)
+        let! checkRes = checker.ParseAndCheckProject(options)
+        // The first compilation takes longer, so we run one during load
+        let! _ = checker.Compile(checkRes)
         return {
             Checker = checker
             Options = options
+            CheckResults = checkRes
             Sequence = 0
             Status = Standby
         }
@@ -46,7 +69,7 @@ module Compiler =
         with exn -> eprintfn "%A" exn
     }
 
-    let checkDelay = Delayer(200)
+    let checkDelay = Delayer(500)
 
 open Compiler
 
@@ -55,20 +78,17 @@ type Compiler with
     member comp.Run(source: string) =
         { comp with Status = Running },
         fun () -> async {
+            let start = DateTime.Now
             let outFile = sprintf "/tmp/out%i.exe" comp.Sequence
-            //let! options, errors = comp.Checker.GetProjectOptionsFromScript(inFile, source)
-            //if IsFailure errors then return { comp with Status = Failed errors } else
             File.WriteAllText(inFile, source)
-            let! errors, res =
-                comp.Checker.Compile([|
-                    yield @"/tmp/fsc.exe"
-                    yield! comp.Options.SourceFiles
-                    yield! comp.Options.OtherOptions
-                    yield "-o"
-                    yield outFile
-                |])
+            // We need to recompute the options because we're changing the out file
+            let options = Compiler.Options comp.Checker outFile
+            let! checkRes = comp.Checker.ParseAndCheckProject(options)
+            let! errors, outCode = comp.Checker.Compile(checkRes)
             let errors = List.ofArray errors
-            if IsFailure errors || res <> 0 then return { comp with Status = Failed errors } else
+            let finish = DateTime.Now
+            printfn "Compiled in %A" (finish - start)
+            if IsFailure errors || outCode <> 0 then return { comp with Status = Failed errors } else
             return
                 { comp with
                     Sequence = comp.Sequence + 1
@@ -77,10 +97,8 @@ type Compiler with
 
     member comp.TriggerCheck(source: string, dispatch: list<FSharpErrorInfo> -> unit) =
         checkDelay.Trigger(async {
-            //let! options, projErrors = comp.Checker.GetProjectOptionsFromScript(inFile, source)
             let! parseRes, checkRes = comp.Checker.ParseAndCheckFileInProject(inFile, 0, source, comp.Options)
             dispatch [
-                //yield! projErrors
                 yield! parseRes.Errors
                 match checkRes with
                 | FSharpCheckFileAnswer.Aborted -> ()
@@ -95,3 +113,8 @@ type Compiler with
 
     member comp.IsRunning =
         comp.Status = Running
+
+    member comp.MarkAsFailedIfRunning() =
+        match comp.Status with
+        | Running -> { comp with Status = Failed [] }
+        | _ -> comp

@@ -16,9 +16,11 @@ type Model =
         Exception: option<exn>
     }
 
+let defaultSource = "printfn \"Hello, world!\""
+
 let initModel compiler =
     {
-        Text = "printfn \"Hello, world!\""
+        Text = defaultSource
         Compiler = compiler
         Executor = Executor.create ()
         Messages = []
@@ -30,7 +32,7 @@ type Message =
     | Compile
     | Compiled of Compiler
     | RunFinished of Executor
-    | CheckErrors of list<FSharpErrorInfo>
+    | Checked of list<FSharpErrorInfo>
     | Error of exn
     | SelectMessage of FSharpErrorInfo
 
@@ -61,7 +63,7 @@ let update message model =
     | SetText text ->
         { model with Text = text },
         Cmd.ofSub <| fun dispatch ->
-            model.Compiler.TriggerCheck(text, dispatch << CheckErrors)
+            model.Compiler.TriggerCheck(text, dispatch << Checked)
     | Compile ->
         let compiler, run = model.Compiler.Run(model.Text)
         { model with Compiler = compiler },
@@ -88,10 +90,12 @@ let update message model =
     | RunFinished executor ->
         { model with Executor = executor },
         []
-    | CheckErrors errors ->
+    | Checked errors ->
         { model with Messages = errors }, []
     | Error exn ->
-        { model with Exception = Some exn },
+        { model with
+            Exception = Some exn
+            Compiler = model.Compiler.MarkAsFailedIfRunning() },
         Cmd.attemptTask ScreenOut.Clear () Error
     | SelectMessage message ->
         model,
@@ -143,7 +147,7 @@ type MyApp() =
     let updateApp message model =
         match message with
         | InitializeCompiler ->
-            model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) () CompilerInitialized Error
+            model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) defaultSource CompilerInitialized Error
         | CompilerInitialized compiler ->
             Some (initModel compiler), []
         | Message msg ->
@@ -165,4 +169,4 @@ type MyApp() =
         Program.mkProgram
             (fun _ -> None, Cmd.ofMsg InitializeCompiler)
             updateApp viewApp
-        |> Program.withConsoleTrace
+        //|> Program.withConsoleTrace
