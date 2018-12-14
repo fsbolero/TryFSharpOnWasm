@@ -1,0 +1,19 @@
+
+@import "bulma/sass/utilities/_all.sass";
+@import "bulma/sass/base/_all.sass";
+
+$navbar-breakpoint: $fullhd;
+
+@import "bulma/sass/components/navbar.sass";
+@import "bulma/sass/elements/button.sass";
+@import "bulma/sass/form/_all.sass";
+
+@import "@fortawesome/fontawesome-free/scss/fontawesome.scss";
+@import "@fortawesome/fontawesome-free/scss/solid.scss";
+
+@import "index.scss";
+
+.navbar h1 {
+  font-size: 120%;
+  font-weight: bold;
+}
