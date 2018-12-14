@@ -15,10 +15,10 @@
     <Content Include="main.html" />
     <BlazorLinkerDescriptor Include="linker.xml" />
   </ItemGroup>
-  <ItemGroup />
-  <Target Name="CopyCustomFCS" AfterTargets="_BlazorCopyFilesToOutputDirectory">
-    <Copy SourceFiles="../../../fsharp.compiler.service/release/fcs/netstandard2.0/FSharp.Compiler.Service.dll" DestinationFolder="$(TargetDir)dist/_framework/_bin" />
-    <Copy SourceFiles="../../../blazor/src/Microsoft.AspNetCore.Blazor.Browser.JS/dist/blazor.webassembly.js" DestinationFolder="$(TargetDir)dist/_framework" />
+  <Target Name="CopyCustomBlazor" AfterTargets="_BlazorCopyFilesToOutputDirectory">
+    <!-- Lightly customized version of blazor.webassembly.js.
+         Compiled from https://github.com/tarmil/blazor/tree/bolero -->
+    <Copy SourceFiles="blazor.webassembly.js" DestinationFolder="$(TargetDir)dist/_framework" />
   </Target>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

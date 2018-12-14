@@ -2,4 +2,4 @@ FSharp.Core
 Microsoft.AspNetCore.Blazor.Build
 Microsoft.AspNetCore.Blazor.Cli
 Bolero
-FSharp.Compiler.Service
+Bolero.FSharp.Compiler.Service
