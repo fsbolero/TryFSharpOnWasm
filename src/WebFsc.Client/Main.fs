@@ -116,7 +116,6 @@ let compilerMessage (msg: FSharpErrorInfo) dispatch =
 
 let view model dispatch =
     Main()
-        .Source(model.Text, fun s -> dispatch (SetText s))
         .Run(fun _ -> dispatch Compile)
         .RunClass(if model.Compiler.IsRunning then "is-loading" else "")
         .Messages(concat [
@@ -137,9 +136,16 @@ let view model dispatch =
 
 type AppMessage =
     | InitializeCompiler
+    | InitializeEditor
     | CompilerInitialized of Compiler
     | Message of Message
     | Error of exn
+
+type EditorBinding(dispatch: AppMessage -> unit) =
+
+    [<JSInvokable>]
+    member this.SetText(text: string) =
+        dispatch (Message (SetText text))
 
 type MyApp() =
     inherit ProgramComponent<option<Model>, AppMessage>()
@@ -149,7 +155,14 @@ type MyApp() =
         | InitializeCompiler ->
             model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) defaultSource CompilerInitialized Error
         | CompilerInitialized compiler ->
-            Some (initModel compiler), []
+            Some (initModel compiler), Cmd.ofMsg InitializeEditor
+        | InitializeEditor ->
+            model,
+            Cmd.ofSub(fun dispatch ->
+                let onEdit = new DotNetObjectRef(EditorBinding(dispatch))
+                JSRuntime.Current.InvokeAsync("WebFsc.initAce", "editor", defaultSource, onEdit)
+                |> ignore
+            )
         | Message msg ->
             match model with
             | None -> model, [] // Shouldn't happen

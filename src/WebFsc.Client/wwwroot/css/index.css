@@ -37,7 +37,7 @@ html, body, #main {
 
 #editor, #messages, #stdout {
     background: white;
-    font-family: monospace;
+    font-family: 'Roboto Mono', monospace;
     border: 0;
     font-size: 1rem;
     padding: 0.5em;

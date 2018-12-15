@@ -1,4 +1,13 @@
 ﻿WebFsc = {
+    initAce: function (id, initText, onEdit) {
+        var editor = ace.edit(id, { mode: "ace/mode/fsharp" });
+        editor.session.setValue(initText);
+        editor.session.on('change', () => {
+            onEdit.invokeMethodAsync('SetText', editor.session.getValue());
+        });
+        editor.focus();
+        this.editor = editor;
+    },
     selectMessage: function (start, end) {
         var el = document.getElementById("editor");
         el.focus();
