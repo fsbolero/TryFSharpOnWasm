@@ -1,83 +1,95 @@
-﻿#main {
-    display: flex;
-    flex-direction: column;
+#main {
+  display: flex;
+  flex-direction: column;
 }
 
 html, body, #main {
-    height: 100%;
-    overflow: hidden;
+  height: 100%;
+  overflow: hidden;
 }
 
 #main > section {
-    flex: 1;
-    background: #ddd;
+  flex: 1;
+  background: #ddd;
 }
 
 .split-h {
-    display: flex;
-    flex-direction: row;
-    margin-right: -5px;
+  display: flex;
+  flex-direction: row;
+  margin-right: -5px;
 }
 
 .split-h > * {
-    flex: 1;
-    margin-right: 5px;
+  flex: 1;
+  margin-right: 5px;
 }
 
 .split-v {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: -5px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: -5px;
 }
 
 .split-v > * {
-    flex: 1;
-    margin-bottom: 5px;
+  flex: 1;
+  margin-bottom: 5px;
 }
 
 #editor, #messages, #stdout {
-    background: white;
-    font-family: 'Roboto Mono', monospace;
-    border: 0;
-    font-size: 1rem;
-    padding: 0.5em;
-    overflow: auto;
+  background: white;
+  font-family: 'Roboto Mono', monospace;
+  border: 0;
+  font-size: 1rem;
+  padding: 0.5em;
+  overflow: auto;
 }
 
 #stdout {
-    white-space: pre-wrap;
+  white-space: pre-wrap;
 }
 
 .stderr {
-    color: #e0420a;
+  color: #e0420a;
 }
 
 #editor:focus {
-    outline: none;
+  outline: none;
 }
- 
+
 .compiler-message {
-    padding: 0 5px;
-    white-space: pre-wrap;
-    font-family: monospace;
+  padding: 0 5px;
+  white-space: pre-wrap;
+  font-family: monospace;
 }
 
 a.compiler-message-link {
-    color: inherit!important;
+  color: inherit!important;
 }
 
 .compiler-message.Error {
-    background: #ff8c62;
+  background: #ff8c62;
 }
 
 a.compiler-message-link .compiler-message.Error:hover {
-    background: #e47f5b;
+  background: #e47f5b;
 }
 
 .compiler-message.Warning {
-    background: goldenrod;
+  background: goldenrod;
 }
 
 a.compiler-message-link .compiler-message.Warning:hover {
-    background: #c39520;
+  background: #c39520;
+}
+
+.marker-error {
+  background: rgba(255, 140, 98, 0.1);
+  border: solid 1px #ff8c62;
+  position: absolute;
+}
+
+.marker-warning {
+  background: rgba(218, 165, 32, 0.1);
+  border: solid 1px goldenrod;
+  position: absolute;
 }

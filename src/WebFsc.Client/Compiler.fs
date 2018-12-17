@@ -1,4 +1,4 @@
-﻿// $begin{copyright}
+// $begin{copyright}
 //
 // Copyright (c) 2018 IntelliFactory and contributors
 //
@@ -26,8 +26,8 @@ open Microsoft.JSInterop
 type CompilerStatus =
     | Standby
     | Running
-    | Failed of list<FSharpErrorInfo>
-    | Succeeded of string * list<FSharpErrorInfo>
+    | Failed of FSharpErrorInfo[]
+    | Succeeded of string * FSharpErrorInfo[]
 
 type Compiler =
     {
@@ -102,31 +102,31 @@ type Compiler with
             // We need to recompute the options because we're changing the out file
             let options = Compiler.Options comp.Checker outFile
             let! checkRes = comp.Checker.ParseAndCheckProject(options)
+            if IsFailure checkRes.Errors then return { comp with Status = Failed checkRes.Errors } else
             let! errors, outCode = comp.Checker.Compile(checkRes)
-            let errors = List.ofArray errors
             let finish = DateTime.Now
             printfn "Compiled in %A" (finish - start)
-            if IsFailure errors || outCode <> 0 then return { comp with Status = Failed errors } else
+            if IsFailure errors || outCode <> 0 then return { comp with Status = Failed (Array.append checkRes.Errors errors) } else
             return
                 { comp with
                     Sequence = comp.Sequence + 1
                     Status = Succeeded (outFile, errors) }
         }
 
-    member comp.TriggerCheck(source: string, dispatch: list<FSharpErrorInfo> -> unit) =
+    member comp.TriggerCheck(source: string, dispatch: FSharpErrorInfo[] -> unit) =
         checkDelay.Trigger(async {
             let! parseRes, checkRes = comp.Checker.ParseAndCheckFileInProject(inFile, 0, source, comp.Options)
-            dispatch [
+            dispatch [|
                 yield! parseRes.Errors
                 match checkRes with
                 | FSharpCheckFileAnswer.Aborted -> ()
                 | FSharpCheckFileAnswer.Succeeded checkRes -> yield! checkRes.Errors
-            ]
+            |]
         })
 
     member comp.Messages =
         match comp.Status with
-        | Standby | Running -> []
+        | Standby | Running -> [||]
         | Succeeded(_, m) | Failed m -> m
 
     member comp.IsRunning =
@@ -134,5 +134,5 @@ type Compiler with
 
     member comp.MarkAsFailedIfRunning() =
         match comp.Status with
-        | Running -> { comp with Status = Failed [] }
+        | Running -> { comp with Status = Failed [||] }
         | _ -> comp

@@ -30,7 +30,7 @@ type Model =
         Text: string
         Compiler: Compiler
         Executor: Executor
-        Messages: list<FSharpErrorInfo>
+        Messages: FSharpErrorInfo[]
         Exception: option<exn>
     }
 
@@ -41,7 +41,7 @@ let initModel compiler =
         Text = defaultSource
         Compiler = compiler
         Executor = Executor.create ()
-        Messages = []
+        Messages = [||]
         Exception = None
     }
 
@@ -50,7 +50,7 @@ type Message =
     | Compile
     | Compiled of Compiler
     | RunFinished of Executor
-    | Checked of list<FSharpErrorInfo>
+    | Checked of FSharpErrorInfo[]
     | Error of exn
     | SelectMessage of FSharpErrorInfo
 
@@ -64,16 +64,6 @@ let findPosition (line: int) (col: int) (text: string) =
             | -1 -> text.Length // position is beyond the end of text
             | pos -> go (pos + 1) (l + 1)
     go 0 1
-
-/// Select this message in the textarea.
-let selectMessage (model: Model) (message: FSharpErrorInfo) =
-    JSRuntime.Current.InvokeAsync("WebFsc.selectMessage",
-        findPosition message.StartLineAlternate message.StartColumn model.Text,
-        findPosition message.EndLineAlternate message.EndColumn model.Text,
-        message.StartLineAlternate, message.StartColumn,
-        message.EndLineAlternate, message.EndColumn
-    )
-    :> Task
 
 /// Update the application model.
 let update message model =
@@ -109,7 +99,8 @@ let update message model =
         { model with Executor = executor },
         []
     | Checked errors ->
-        { model with Messages = errors }, []
+        { model with Messages = errors },
+        Cmd.attemptTask Ace.SetAnnotations errors Error
     | Error exn ->
         { model with
             Exception = Some exn
@@ -117,7 +108,7 @@ let update message model =
         Cmd.attemptTask ScreenOut.Clear () Error
     | SelectMessage message ->
         model,
-        Cmd.attemptTask (selectMessage model) message Error
+        Cmd.attemptTask Ace.SelectMessage message Error
 
 type Main = Template<"main.html">
 
@@ -144,7 +135,7 @@ let view model dispatch =
                 | CompilerStatus.Succeeded _ -> "Compilation succeeded."
                 | CompilerStatus.Failed _ -> "Compilation failed."
             forEach (model.Messages
-                    |> List.sortByDescending (fun msg -> msg.Severity))
+                    |> Array.sortByDescending (fun msg -> msg.Severity))
                 (fun msg -> compilerMessage msg dispatch)
             cond model.Exception <| function
                 | None -> empty
