@@ -156,15 +156,19 @@ type EditorBinding(dispatch: AppMessage -> unit) =
     member this.SetText(text: string) =
         dispatch (Message (SetText text))
 
+type AppModel =
+    | Initializing
+    | Running of Model
+
 type MyApp() =
-    inherit ProgramComponent<option<Model>, AppMessage>()
+    inherit ProgramComponent<AppModel, AppMessage>()
 
     let updateApp message model =
         match message with
         | InitializeCompiler ->
             model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) defaultSource CompilerInitialized Error
         | CompilerInitialized compiler ->
-            Some (initModel compiler), Cmd.ofMsg InitializeEditor
+            Running (initModel compiler), Cmd.ofMsg InitializeEditor
         | InitializeEditor ->
             model,
             Cmd.ofSub(fun dispatch ->
@@ -174,21 +178,21 @@ type MyApp() =
             )
         | Message msg ->
             match model with
-            | None -> model, [] // Shouldn't happen
-            | Some model ->
+            | Initializing -> model, [] // Shouldn't happen
+            | Running model ->
                 let model, cmd = update msg model
-                Some model, Cmd.map Message cmd
+                Running model, Cmd.map Message cmd
         | Error exn ->
             eprintfn "%A" exn
             model, []
 
     let viewApp model dispatch =
         cond model <| function
-            | None -> text "Initializing compiler..."
-            | Some m -> view m (dispatch << Message)
+            | Initializing -> text "Initializing compiler..."
+            | Running m -> view m (dispatch << Message)
 
     override this.Program =
         Program.mkProgram
-            (fun _ -> None, Cmd.ofMsg InitializeCompiler)
+            (fun _ -> Initializing, Cmd.ofMsg InitializeCompiler)
             updateApp viewApp
         //|> Program.withConsoleTrace
