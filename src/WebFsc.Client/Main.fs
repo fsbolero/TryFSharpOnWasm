@@ -19,11 +19,13 @@
 module WebFsc.Client.Main
 
 open System.Threading.Tasks
+open System.Net.Http
 open Microsoft.FSharp.Compiler.SourceCodeServices
 open Microsoft.JSInterop
 open Elmish
 open Bolero
 open Bolero.Html
+open Microsoft.AspNetCore.Blazor.Components
 
 type Model =
     {
@@ -32,9 +34,18 @@ type Model =
         Executor: Executor
         Messages: FSharpErrorInfo[]
         Exception: option<exn>
+        SelectedSample: string
     }
 
 let defaultSource = "printfn \"Hello, world!\""
+
+let samples =
+    [
+        "HelloWorld", "Hello, world!"
+        "Arithmetic", "Arithmetic"
+    ]
+
+let unselectedSample = "Unselected"
 
 let initModel compiler =
     {
@@ -43,6 +54,7 @@ let initModel compiler =
         Executor = Executor.create ()
         Messages = [||]
         Exception = None
+        SelectedSample = unselectedSample
     }
 
 type Message =
@@ -53,6 +65,8 @@ type Message =
     | Checked of FSharpErrorInfo[]
     | Error of exn
     | SelectMessage of FSharpErrorInfo
+    | LoadSample of string
+    | SampleLoaded of string
 
 /// Find the linear position corresponding to the given line and column (base 1) in the given text.
 let findPosition (line: int) (col: int) (text: string) =
@@ -66,10 +80,10 @@ let findPosition (line: int) (col: int) (text: string) =
     go 0 1
 
 /// Update the application model.
-let update message model =
+let update (http: HttpClient) message model =
     match message with
     | SetText text ->
-        { model with Text = text },
+        { model with Text = text; SelectedSample = unselectedSample },
         Cmd.ofSub <| fun dispatch ->
             model.Compiler.TriggerCheck(text, dispatch << Checked)
     | Compile ->
@@ -109,6 +123,16 @@ let update message model =
     | SelectMessage message ->
         model,
         Cmd.attemptTask Ace.SelectMessage message Error
+    | LoadSample sampleId ->
+        { model with SelectedSample = sampleId },
+        Cmd.ofTask
+            (fun (s: string) -> http.GetStringAsync(s))
+            (sprintf "/samples/%s.fsx" sampleId)
+            SampleLoaded Error
+    | SampleLoaded text ->
+        model,
+        Cmd.attemptTask
+            (fun () -> JSRuntime.Current.InvokeAsync("WebFsc.setText", text) :> Task) () Error
 
 type Main = Template<"main.html">
 
@@ -122,6 +146,9 @@ let compilerMessage (msg: FSharpErrorInfo) dispatch =
         .Message(msg.Message)
         .Select(fun _ -> dispatch (SelectMessage msg))
         .Elt()
+
+let sampleOption (id: string, label: string) =
+    option [attr.value id] [text label]
 
 let view model dispatch =
     Main()
@@ -141,6 +168,8 @@ let view model dispatch =
                 | None -> empty
                 | Some e -> Main.SimpleMessage().Severity("Error").Message(string e).Elt()
         ])
+        .LoadSample(model.SelectedSample, fun s -> dispatch (LoadSample s))
+        .Samples(forEach samples sampleOption)
         .Elt()
 
 type AppMessage =
@@ -163,7 +192,10 @@ type AppModel =
 type MyApp() =
     inherit ProgramComponent<AppModel, AppMessage>()
 
-    let updateApp message model =
+    [<Inject>]
+    member val Http = Unchecked.defaultof<HttpClient> with get, set
+
+    member this.UpdateApp message model =
         match message with
         | InitializeCompiler ->
             model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) defaultSource CompilerInitialized Error
@@ -180,13 +212,13 @@ type MyApp() =
             match model with
             | Initializing -> model, [] // Shouldn't happen
             | Running model ->
-                let model, cmd = update msg model
+                let model, cmd = update this.Http msg model
                 Running model, Cmd.map Message cmd
         | Error exn ->
             eprintfn "%A" exn
             model, []
 
-    let viewApp model dispatch =
+    member this.ViewApp model dispatch =
         cond model <| function
             | Initializing -> text "Initializing compiler..."
             | Running m -> view m (dispatch << Message)

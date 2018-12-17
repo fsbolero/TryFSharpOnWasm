@@ -8,6 +8,10 @@ WebFsc = {
     });
     editor.focus();
   },
+  /// Set the text contents of the Ace editor.
+  setText: function (text) {
+    WebFsc.editor.session.setValue(text);
+  },
   /// Update the error/warning annotations.
   setAnnotations: function (annotations) {
     var es = WebFsc.editor.session;

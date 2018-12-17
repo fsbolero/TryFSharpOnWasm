@@ -1,27 +1,35 @@
-﻿<nav class="navbar is-dark">
-    <div class="navbar-brand">
-        <a class="navbar-item" href="https://github.com/fsbolero/Bolero">Bolero</a>
-        <div class="navbar-item">
-            <div class="buttons">
-                <a class="button is-success ${RunClass}" onclick="${Run}">Run</a>
-            </div>
-        </div>
+<nav class="navbar is-dark">
+  <div class="navbar-brand">
+    <a class="navbar-item" href="https://github.com/fsbolero/Bolero">Bolero</a>
+    <div class="navbar-item">
+      <div class="buttons">
+        <a class="button is-success ${RunClass}" onclick="${Run}">Run</a>
+      </div>
     </div>
+    <div class="navbar-item">
+      <div class="select">
+        <select bind="${LoadSample}">
+          <option value="Unselected">Examples</option>
+          ${Samples}
+        </select>
+      </div>
+    </div>
+  </div>
 </nav>
 <section class="split-h">
-    <div id="editor"></div>
-    <div id="outputs" class="split-v">
-        <div id="messages">
-            ${Messages}
-            <template id="CompilerMessage">
-                <a onclick="${Select}" class="compiler-message-link">
-                    <div class="compiler-message ${Severity}"><b>(${StartLine},${StartColumn})-(${EndLine},${EndColumn})</b> ${Message}</div>
-                </a>
-            </template>
-            <template id="SimpleMessage">
-                <div class="compiler-message ${Severity}">${Message}</div>
-            </template>
-        </div>
-        <div id="stdout">${Stdout}</div>
+  <div id="editor"></div>
+  <div id="outputs" class="split-v">
+    <div id="messages">
+      ${Messages}
+      <template id="CompilerMessage">
+        <a onclick="${Select}" class="compiler-message-link">
+          <div class="compiler-message ${Severity}"><b>(${StartLine},${StartColumn})-(${EndLine},${EndColumn})</b> ${Message}</div>
+        </a>
+      </template>
+      <template id="SimpleMessage">
+        <div class="compiler-message ${Severity}">${Message}</div>
+      </template>
     </div>
+    <div id="stdout">${Stdout}</div>
+  </div>
 </section>
