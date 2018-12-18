@@ -8,6 +8,24 @@ html, body, #main {
   overflow: hidden;
 }
 
+.loading-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-wrapper > img {
+  margin-bottom: 1rem;
+}
+
+.loading-wrapper .loader {
+  display: inline-block;
+  border-color: #4a4a4a #4a4a4a transparent transparent;
+  margin-right: 0.5rem;
+}
+
 #main > section {
   flex: 1;
   background: #ddd;
