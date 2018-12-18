@@ -126,7 +126,7 @@ let update (http: HttpClient) message model =
         { model with SelectedSample = sampleId },
         Cmd.ofTask
             (fun (s: string) -> http.GetStringAsync(s))
-            (sprintf "/samples/%s.fsx" sampleId)
+            (sprintf "samples/%s.fsx" sampleId)
             SampleLoaded Error
     | SampleLoaded text ->
         model,
