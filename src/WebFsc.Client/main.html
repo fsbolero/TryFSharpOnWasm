@@ -18,20 +18,24 @@
 <section class="split-h">
   <div id="editor"></div>
   <div id="outputs" class="split-v">
-    <div class="panel-header">Compiler output</div>
-    <div id="messages">
-      ${Messages}
-      <template id="CompilerMessage">
-        <a onclick="${Select}" class="compiler-message-link">
-          <div class="compiler-message ${Severity}"><b>(${StartLine},${StartColumn})-(${EndLine},${EndColumn})</b> ${Message}</div>
-        </a>
-      </template>
-      <template id="SimpleMessage">
-        <div class="compiler-message ${Severity}">${Message}</div>
-      </template>
+    <div id="messages-panel">
+      <div class="panel-header">Compiler output</div>
+      <div id="messages">
+        ${Messages}
+        <template id="CompilerMessage">
+          <a onclick="${Select}" class="compiler-message-link">
+            <div class="compiler-message ${Severity}"><b>(${StartLine},${StartColumn})-(${EndLine},${EndColumn})</b> ${Message}</div>
+          </a>
+        </template>
+        <template id="SimpleMessage">
+          <div class="compiler-message ${Severity}">${Message}</div>
+        </template>
+      </div>
     </div>
-    <div class="panel-header">Program output</div>
-    <div id="stdout">${Stdout}</div>
+    <div id="stdout-panel">
+      <div class="panel-header">Program output</div>
+      <div id="stdout">${Stdout}</div>
+    </div>
   </div>
 </section>
 <template id="Loader">

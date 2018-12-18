@@ -34,23 +34,11 @@ html, body, #main {
 .split-h {
   display: flex;
   flex-direction: row;
-  margin-right: -5px;
-}
-
-.split-h > * {
-  flex: 1;
-  margin-right: 5px;
 }
 
 .split-v {
   display: flex;
   flex-direction: column;
-  margin-bottom: -5px;
-}
-
-.split-v > * {
-  flex: 1;
-  margin-bottom: 5px;
 }
 
 .panel-header {
@@ -61,13 +49,27 @@ html, body, #main {
   font-size: 1.1rem;
 }
 
+#messages-panel, #stdout-panel {
+  display: flex;
+  flex-direction: column;
+}
+
 #editor, #messages, #stdout {
+  flex: 1;
   background: white;
   font-family: 'Roboto Mono', monospace;
   border: 0;
   font-size: 1rem;
   padding: 0.5em;
   overflow: auto;
+}
+
+.gutter-horizontal {
+  cursor: col-resize;
+}
+
+.gutter-vertical {
+  cursor: row-resize;
 }
 
 #stdout {

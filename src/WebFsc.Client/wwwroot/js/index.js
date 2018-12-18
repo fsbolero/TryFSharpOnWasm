@@ -1,6 +1,8 @@
 WebFsc = {
   /// Initialize the Ace editor.
   initAce: function (id, initText, onEdit) {
+    Split(['#editor', '#outputs'], { gutterSize: 5 });
+    Split(['#messages-panel', '#stdout-panel'], { gutterSize: 5, direction: 'vertical' });
     var editor = WebFsc.editor = ace.edit(id, { mode: "ace/mode/fsharp" });
     editor.session.setValue(initText);
     editor.session.on('change', () => {
