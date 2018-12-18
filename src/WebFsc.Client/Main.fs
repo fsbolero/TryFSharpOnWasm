@@ -82,7 +82,7 @@ let findPosition (line: int) (col: int) (text: string) =
 let update (http: HttpClient) message model =
     match message with
     | SetText text ->
-        { model with Text = text; SelectedSample = unselectedSample },
+        { model with Text = text },
         Cmd.ofSub <| fun dispatch ->
             model.Compiler.TriggerCheck(text, dispatch << Checked)
     | Compile ->
