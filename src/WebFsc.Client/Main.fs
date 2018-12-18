@@ -25,7 +25,6 @@ open Microsoft.JSInterop
 open Elmish
 open Bolero
 open Bolero.Html
-open Microsoft.AspNetCore.Blazor.Components
 
 type Model =
     {
@@ -37,7 +36,7 @@ type Model =
         SelectedSample: string
     }
 
-let defaultSource = "printfn \"Hello, world!\""
+let defaultSource = "printfn \"Hello, world!\"\n"
 
 let samples =
     [
@@ -171,60 +170,3 @@ let view model dispatch =
         .LoadSample(model.SelectedSample, fun s -> dispatch (LoadSample s))
         .Samples(forEach samples sampleOption)
         .Elt()
-
-type AppMessage =
-    | InitializeCompiler
-    | InitializeEditor
-    | CompilerInitialized of Compiler
-    | Message of Message
-    | Error of exn
-
-type EditorBinding(dispatch: AppMessage -> unit) =
-
-    [<JSInvokable>]
-    member this.SetText(text: string) =
-        dispatch (Message (SetText text))
-
-type AppModel =
-    | Initializing
-    | Running of Model
-
-type MyApp() =
-    inherit ProgramComponent<AppModel, AppMessage>()
-
-    [<Inject>]
-    member val Http = Unchecked.defaultof<HttpClient> with get, set
-
-    member this.UpdateApp message model =
-        match message with
-        | InitializeCompiler ->
-            model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) defaultSource CompilerInitialized Error
-        | CompilerInitialized compiler ->
-            Running (initModel compiler), Cmd.ofMsg InitializeEditor
-        | InitializeEditor ->
-            model,
-            Cmd.ofSub(fun dispatch ->
-                let onEdit = new DotNetObjectRef(EditorBinding(dispatch))
-                JSRuntime.Current.InvokeAsync("WebFsc.initAce", "editor", defaultSource, onEdit)
-                |> ignore
-            )
-        | Message msg ->
-            match model with
-            | Initializing -> model, [] // Shouldn't happen
-            | Running model ->
-                let model, cmd = update this.Http msg model
-                Running model, Cmd.map Message cmd
-        | Error exn ->
-            eprintfn "%A" exn
-            model, []
-
-    member this.ViewApp model dispatch =
-        cond model <| function
-            | Initializing -> text "Initializing compiler..."
-            | Running m -> view m (dispatch << Message)
-
-    override this.Program =
-        Program.mkProgram
-            (fun _ -> Initializing, Cmd.ofMsg InitializeCompiler)
-            updateApp viewApp
-        //|> Program.withConsoleTrace

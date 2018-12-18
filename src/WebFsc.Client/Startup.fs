@@ -28,7 +28,7 @@ type Startup() =
         ()
 
     member __.Configure(app: IBlazorApplicationBuilder) =
-        app.AddComponent<Main.MyApp>("#main")
+        app.AddComponent<App.MainApp>("#main")
 
 module Program =
 

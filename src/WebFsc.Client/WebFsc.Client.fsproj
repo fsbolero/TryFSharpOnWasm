@@ -11,6 +11,7 @@
     <Compile Include="Executor.fs" />
     <Compile Include="Ace.fs" />
     <Compile Include="Main.fs" />
+    <Compile Include="App.fs" />
     <Compile Include="Startup.fs" />
     <None Include="linker.xml" />
     <Content Include="main.html" />
