@@ -53,6 +53,14 @@ html, body, #main {
   margin-bottom: 5px;
 }
 
+.panel-header {
+  flex: 0;
+  margin: 0;
+  padding: 0 0.5rem 0.2rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
 #editor, #messages, #stdout {
   background: white;
   font-family: 'Roboto Mono', monospace;

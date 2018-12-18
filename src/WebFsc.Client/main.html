@@ -18,6 +18,7 @@
 <section class="split-h">
   <div id="editor"></div>
   <div id="outputs" class="split-v">
+    <div class="panel-header">Compiler output</div>
     <div id="messages">
       ${Messages}
       <template id="CompilerMessage">
@@ -29,6 +30,7 @@
         <div class="compiler-message ${Severity}">${Message}</div>
       </template>
     </div>
+    <div class="panel-header">Program output</div>
     <div id="stdout">${Stdout}</div>
   </div>
 </section>
