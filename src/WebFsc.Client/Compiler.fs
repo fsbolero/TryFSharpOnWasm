@@ -20,6 +20,7 @@ namespace WebFsc.Client
 
 open System
 open System.IO
+open System.Reflection
 open Microsoft.FSharp.Compiler.SourceCodeServices
 open Microsoft.JSInterop
 
@@ -53,11 +54,16 @@ module Compiler =
             "--warn:3"
             "--target:exe"
             inFile
+            // Necessary standard library
             "-r:/tmp/mscorlib.dll"
+            "-r:/tmp/netstandard.dll"
             "-r:/tmp/System.dll"
             "-r:/tmp/System.Core.dll"
             "-r:/tmp/System.IO.dll"
             "-r:/tmp/System.Runtime.dll"
+            // Additional libraries we want to make available
+            "-r:/tmp/FSharp.Data.dll"
+            "-r:/tmp/System.Xml.Linq.dll"
             "-o:" + outFile
         |])
 
@@ -86,6 +92,16 @@ module Compiler =
         try do! JSRuntime.Current.InvokeAsync("WebFsc.getCompiledFile", path) |> Async.AwaitTask
         with exn -> eprintfn "%A" exn
     }
+
+    let SetFSharpDataHttpClient http =
+        // Set the run time HttpClient
+        FSharp.Data.Http.Client <- http
+        // Set the design time HttpClient
+        let asm = System.Reflection.Assembly.LoadFrom("/tmp/FSharp.Data.DesignTime.dll")
+        let ty = asm.GetType("FSharp.Data.Http")
+        let prop = ty.GetProperty("Client", BindingFlags.Static ||| BindingFlags.Public)
+        prop.GetSetMethod().Invoke(null, [|http|])
+        |> ignore
 
     let checkDelay = Delayer(500)
 

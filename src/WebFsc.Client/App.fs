@@ -34,7 +34,10 @@ type MainApp() =
     member this.UpdateApp message model =
         match message with
         | InitializeCompiler ->
-            model, Cmd.ofAsync (Compiler.Create >> Async.WithYield) defaultSource CompilerInitialized Error
+            model, Cmd.ofAsync (fun src -> async {
+                Compiler.SetFSharpDataHttpClient this.Http
+                return! Compiler.Create src |> Async.WithYield
+            }) defaultSource CompilerInitialized Error
         | CompilerInitialized compiler ->
             Running (initModel compiler), Cmd.ofMsg InitializeEditor
         | InitializeEditor ->

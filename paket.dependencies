@@ -1,6 +1,7 @@
 version 5.189.1
 source https://api.nuget.org/v3/index.json
 source https://ci.appveyor.com/nuget/bolero
+source https://ci.appveyor.com/nuget/bolero-fsharp-data
 source https://daily.websharper.com/nuget # Bolero.FSharp.Compiler.Service is published here
 storage: none
 framework: netstandard2.0, netcoreapp2.1
@@ -14,3 +15,4 @@ clitool Microsoft.AspNetCore.Blazor.Cli ~> 0.7.0
 
 # Force <2.2 to prevent this issue: https://github.com/aspnet/Razor/issues/2553
 nuget Microsoft.AspNetCore.Razor.Design ~> 2.1.0
+nuget Bolero.FSharp.Data >= 3.0 prerelease

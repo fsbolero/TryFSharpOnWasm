@@ -42,6 +42,8 @@ let samples =
     [
         "HelloWorld", "Hello, world!"
         "Arithmetic", "Arithmetic"
+        "TP_Json", "JSON Type Provider"
+        "TP_Xml", "XML Type Provider"
     ]
 
 let unselectedSample = "Unselected"

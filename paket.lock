@@ -1,12 +1,27 @@
 STORAGE: NONE
 RESTRICTION: || (== netcoreapp2.1) (== netstandard2.0)
 NUGET
-  remote: https://api.nuget.org/v3/index.json
-    Bolero (0.1.84)
+  remote: https://ci.appveyor.com/nuget/bolero
+    Bolero (0.1.87)
       Elmish (>= 2.0)
       FSharp.Core (>= 4.5)
       Microsoft.AspNetCore.Blazor.Browser (>= 0.7)
       Microsoft.AspNetCore.Http.Abstractions (>= 2.1)
+  remote: https://daily.websharper.com/nuget
+    Bolero.FSharp.Compiler.Service (25.0.1.5)
+      FSharp.Core (>= 4.1.18)
+      System.Collections.Immutable (>= 1.5)
+      System.Diagnostics.Process (>= 4.1)
+      System.Diagnostics.TraceSource (>= 4.0)
+      System.Reflection.Emit (>= 4.3)
+      System.Reflection.Metadata (>= 1.6)
+      System.Reflection.TypeExtensions (>= 4.3)
+      System.Runtime.Loader (>= 4.0)
+      System.Security.Cryptography.Algorithms (>= 4.3)
+  remote: https://ci.appveyor.com/nuget/bolero-fsharp-data
+    Bolero.FSharp.Data (3.0.0.1-a1812191752)
+      FSharp.Core (>= 4.3.4)
+  remote: https://api.nuget.org/v3/index.json
     Elmish (2.0.3)
       FSharp.Core (>= 4.5.2)
     FSharp.Core (4.5.4)
@@ -1544,14 +1559,3 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3)
       System.Xml.XDocument (>= 4.3)
       System.Xml.XPath (>= 4.3)
-  remote: https://daily.websharper.com/nuget
-    Bolero.FSharp.Compiler.Service (25.0.1.5)
-      FSharp.Core (>= 4.1.18)
-      System.Collections.Immutable (>= 1.5)
-      System.Diagnostics.Process (>= 4.1)
-      System.Diagnostics.TraceSource (>= 4.0)
-      System.Reflection.Emit (>= 4.3)
-      System.Reflection.Metadata (>= 1.6)
-      System.Reflection.TypeExtensions (>= 4.3)
-      System.Runtime.Loader (>= 4.0)
-      System.Security.Cryptography.Algorithms (>= 4.3)
