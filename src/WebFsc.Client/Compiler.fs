@@ -109,6 +109,27 @@ module Compiler =
         // Set the user run time HttpClient
         Env.SetHttp http
 
+    let mainAsyncTypeName = "Microsoft.FSharp.Core.unit -> \
+                            Microsoft.FSharp.Control.Async<Microsoft.FSharp.Core.unit>"
+
+    let findMainAsync (checkRes: FSharpCheckProjectResults) =
+        match checkRes.AssemblySignature.FindEntityByPath ["Main"] with
+        | Some m ->
+            m.MembersFunctionsAndValues
+            |> Seq.exists (fun v ->
+                v.IsModuleValueOrMember &&
+                v.FullType.Format(FSharpDisplayContext.Empty) = mainAsyncTypeName
+            )
+        | None -> false
+
+    /// Filter out "Main module of program is empty: nothing will happen when it is run"
+    /// when the program has a MainAsync : unit -> Async<unit>.
+    let filterNoMainMessage checkRes (errors: FSharpErrorInfo[]) =
+        if findMainAsync checkRes then
+            errors |> Array.filter (fun m -> m.ErrorNumber <> 988)
+        else
+            errors
+
     let checkDelay = Delayer(500)
 
 open Compiler
@@ -128,7 +149,10 @@ type Compiler with
             let! errors, outCode = comp.Checker.Compile(checkRes)
             let finish = DateTime.Now
             printfn "Compiled in %A" (finish - start)
-            if IsFailure errors || outCode <> 0 then return { comp with Status = Failed (Array.append checkRes.Errors errors) } else
+            let errors =
+                Array.append checkRes.Errors errors
+                |> filterNoMainMessage checkRes
+            if IsFailure errors || outCode <> 0 then return { comp with Status = Failed errors } else
             return
                 { comp with
                     Sequence = comp.Sequence + 1
