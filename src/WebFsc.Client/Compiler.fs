@@ -91,11 +91,10 @@ module Compiler =
         errors
         |> Seq.exists (fun (x: FSharpErrorInfo) -> x.Severity = FSharpErrorSeverity.Error)
 
-    let DownloadFile (path: string) = async {
+    let DownloadFile (path: string) =
         printfn "Downloading output..."
-        try do! JSRuntime.Current.InvokeAsync("WebFsc.getCompiledFile", path) |> Async.AwaitTask
+        try JS.Invoke<unit>("WebFsc.getCompiledFile", path)
         with exn -> eprintfn "%A" exn
-    }
 
     let SetFSharpDataHttpClient http =
         // Set the FSharp.Data run time HttpClient

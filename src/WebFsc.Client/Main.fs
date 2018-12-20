@@ -101,7 +101,7 @@ let update (http: HttpClient) message model =
             Messages = compiler.Messages
         },
         Cmd.batch [
-            Cmd.attemptTask ScreenOut.Clear () Error
+            Cmd.attemptFunc ScreenOut.Clear () Error
             Cmd.ofAsync (run >> ScreenOut.Wrap) () RunFinished Error
         ]
     | Compiled compiler ->
@@ -110,31 +110,31 @@ let update (http: HttpClient) message model =
             Compiler = compiler
             Messages = compiler.Messages
         },
-        Cmd.attemptTask ScreenOut.Clear () Error
+        Cmd.attemptFunc ScreenOut.Clear () Error
     | RunFinished executor ->
         { model with Executor = executor },
         []
     | Checked errors ->
         { model with Messages = errors },
-        Cmd.attemptTask Ace.SetAnnotations errors Error
+        Cmd.attemptFunc Ace.SetAnnotations errors Error
     | Error exn ->
         { model with
             Exception = Some exn
             Compiler = model.Compiler.MarkAsFailedIfRunning() },
-        Cmd.attemptTask ScreenOut.Clear () Error
+        Cmd.attemptFunc ScreenOut.Clear () Error
     | SelectMessage message ->
         model,
-        Cmd.attemptTask Ace.SelectMessage message Error
     | LoadSample sampleId ->
         { model with SelectedSample = sampleId },
+        Cmd.attemptFunc Ace.SelectMessage message Error
         Cmd.ofTask
             (fun (s: string) -> http.GetStringAsync(s))
             (sprintf "samples/%s.fsx" sampleId)
             SampleLoaded Error
     | SampleLoaded text ->
         model,
-        Cmd.attemptTask
-            (fun () -> JSRuntime.Current.InvokeAsync("WebFsc.setText", text) :> Task) () Error
+        Cmd.attemptFunc
+            (fun () -> JS.Invoke<unit>("WebFsc.setText", text)) () Error
 
 type Main = Template<"main.html">
 

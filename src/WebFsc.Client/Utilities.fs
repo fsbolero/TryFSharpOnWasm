@@ -1,4 +1,4 @@
-﻿// $begin{copyright}
+// $begin{copyright}
 //
 // Copyright (c) 2018 IntelliFactory and contributors
 //
@@ -22,7 +22,13 @@ open System
 open System.IO
 open System.Threading
 open System.Threading.Tasks
-open System.Threading.Tasks
+open Microsoft.JSInterop
+open Mono.WebAssembly.Interop
+
+type JS =
+
+    static member Invoke<'Result>(name: string, [<ParamArray>] args: obj[]) =
+        (JSRuntime.Current :?> MonoWebAssemblyJSRuntime).Invoke<'Result>(name, args)
 
 module Cmd =
     open Elmish
@@ -53,7 +59,6 @@ module Async =
         async.Bind(Async.Sleep(10), fun _ -> a)
 
 module ScreenOut =
-    open Microsoft.JSInterop
 
     type Writer(isErr: bool) =
         inherit TextWriter()
@@ -64,11 +69,7 @@ module ScreenOut =
             this.Write(string c)
 
         override this.Write(s: string) =
-            this.WriteAsync(s) |> ignore
-
-        override this.WriteAsync(s: string) =
-            JSRuntime.Current.InvokeAsync("WebFsc.write", s, isErr)
-            :> Task
+            JS.Invoke<unit>("WebFsc.write", s, isErr)
 
     let private out = new Writer(false)
     let private err = new Writer(true)
@@ -87,8 +88,7 @@ module ScreenOut =
         }
 
     let Clear () =
-        JSRuntime.Current.InvokeAsync("WebFsc.clear")
-        :> Task
+        JS.Invoke("WebFsc.clear") : unit
 
 /// Delays computations by the given amount, cancelling previous computations
 /// if triggering during their delay.

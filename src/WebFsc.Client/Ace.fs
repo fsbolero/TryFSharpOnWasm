@@ -46,12 +46,10 @@ let SetAnnotations (messages: FSharpErrorInfo[]) =
                 | FSharpErrorSeverity.Error -> "error"
         }
     )
-    JSRuntime.Current.InvokeAsync("WebFsc.setAnnotations", annotations)
-    :> Task
+    JS.Invoke<unit>("WebFsc.setAnnotations", annotations)
 
 let SelectMessage (info: FSharpErrorInfo) =
-    JSRuntime.Current.InvokeAsync("WebFsc.selectRange",
+    JS.Invoke<unit>("WebFsc.selectRange",
         info.StartLineAlternate - 1, info.StartColumn,
         info.EndLineAlternate - 1, info.EndColumn
     )
-    :> Task

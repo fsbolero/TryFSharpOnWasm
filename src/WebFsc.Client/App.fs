@@ -56,8 +56,7 @@ let update http message model =
         model,
         Cmd.ofSub(fun dispatch ->
             let onEdit = new DotNetObjectRef(EditorBinding(dispatch))
-            JSRuntime.Current.InvokeAsync("WebFsc.initAce", "editor", Main.defaultSource, onEdit)
-            |> ignore
+            JS.Invoke("WebFsc.initAce", "editor", Main.defaultSource, onEdit)
         )
     | Message msg ->
         match model with
