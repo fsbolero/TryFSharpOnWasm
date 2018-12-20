@@ -17,6 +17,9 @@
     <Content Include="main.html" />
     <BlazorLinkerDescriptor Include="linker.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\WebFsc.Env\WebFsc.Env.fsproj" />
+  </ItemGroup>
   <Target Name="CopyCustomBlazor" AfterTargets="_BlazorCopyFilesToOutputDirectory">
     <!-- Lightly customized version of blazor.webassembly.js.
          Compiled from https://github.com/tarmil/blazor/tree/bolero -->

@@ -42,6 +42,7 @@ let samples =
     [
         "HelloWorld", "Hello, world!"
         "Arithmetic", "Arithmetic"
+        "Http", "HTTP Requests"
         "TP_Json", "JSON Type Provider"
         "TP_Xml", "XML Type Provider"
     ]

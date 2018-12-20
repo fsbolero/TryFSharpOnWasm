@@ -62,8 +62,12 @@ module Compiler =
             "-r:/tmp/System.IO.dll"
             "-r:/tmp/System.Runtime.dll"
             // Additional libraries we want to make available
+            "-r:/tmp/System.Net.Http.dll"
+            "-r:/tmp/System.Threading.dll"
+            "-r:/tmp/System.Threading.Tasks.dll"
             "-r:/tmp/FSharp.Data.dll"
             "-r:/tmp/System.Xml.Linq.dll"
+            "-r:/tmp/WebFsc.Env.dll"
             "-o:" + outFile
         |])
 
@@ -94,14 +98,16 @@ module Compiler =
     }
 
     let SetFSharpDataHttpClient http =
-        // Set the run time HttpClient
+        // Set the FSharp.Data run time HttpClient
         FSharp.Data.Http.Client <- http
-        // Set the design time HttpClient
+        // Set the FSharp.Data design time HttpClient
         let asm = System.Reflection.Assembly.LoadFrom("/tmp/FSharp.Data.DesignTime.dll")
         let ty = asm.GetType("FSharp.Data.Http")
         let prop = ty.GetProperty("Client", BindingFlags.Static ||| BindingFlags.Public)
         prop.GetSetMethod().Invoke(null, [|http|])
         |> ignore
+        // Set the user run time HttpClient
+        Env.SetHttp http
 
     let checkDelay = Delayer(500)
 

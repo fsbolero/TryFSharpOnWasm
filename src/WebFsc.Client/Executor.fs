@@ -1,4 +1,4 @@
-﻿// $begin{copyright}
+// $begin{copyright}
 //
 // Copyright (c) 2018 IntelliFactory and contributors
 //
@@ -34,7 +34,15 @@ type Executor =
         { this with status = Running },
         fun () -> async {
             let asm = Assembly.LoadFrom(path)
+            // Run entry point
             asm.EntryPoint.Invoke(null, [||]) |> ignore
+            // Run Main.MainAsync() if it exists
+            let mainModule = asm.GetType("Main")
+            if not (isNull mainModule) then
+                let mainAsyncFunc = mainModule.GetMethod("MainAsync", BindingFlags.Static ||| BindingFlags.Public)
+                if not (isNull mainAsyncFunc) then
+                    do! mainAsyncFunc.Invoke(null, [||]) :?> Async<unit>
+            // Done
             return { this with status = Finished 0 }
         }
 
