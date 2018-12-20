@@ -67,3 +67,11 @@ WebFsc = {
     document.body.removeChild(link);
   }
 };
+
+// Very rudimentary browser detection:
+// Firefox has "Gecko/someversion" while others have "(KHTML, like Gecko)"
+if (/Gecko\//.test(navigator.userAgent)) {
+  let s = document.createElement("style");
+  s.appendChild(document.createTextNode(".loader-firefox{display:none}"));
+  document.head.appendChild(s);
+}
