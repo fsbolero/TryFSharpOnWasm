@@ -6,7 +6,7 @@ type MyJson = JsonProvider<"""[ { "name": "repo" } ]""">
 
 let uri = "https://api.github.com/orgs/fsbolero/repos"
 
-let MainAsync() = async {
+let AsyncMain() = async {
     let! response = Env.Http.AsyncGet(uri)
     let! json = response.Content.AsyncReadAsString()
     printfn "Here are the repositories in the fsbolero organization:"

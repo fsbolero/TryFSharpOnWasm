@@ -1,8 +1,8 @@
 let uri = "samples/Http.fsx"
 
-// In TryFSharpOnWasm, if you define a function MainAsync : unit -> Async<unit>
+// In TryFSharpOnWasm, if you define a function AsyncMain : unit -> Async<unit>
 // then it will be run as your program's main function.
-let MainAsync() = async {
+let AsyncMain() = async {
 
     // You can make HTTP requests using Env.Http : System.Net.Http.HttpClient.
     let! response = Env.Http.AsyncGet(uri)

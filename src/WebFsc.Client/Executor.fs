@@ -36,12 +36,12 @@ type Executor =
             let asm = Assembly.LoadFrom(path)
             // Run entry point
             asm.EntryPoint.Invoke(null, [||]) |> ignore
-            // Run Main.MainAsync() if it exists
+            // Run Main.AsyncMain() if it exists
             let mainModule = asm.GetType("Main")
             if not (isNull mainModule) then
-                let mainAsyncFunc = mainModule.GetMethod("MainAsync", BindingFlags.Static ||| BindingFlags.Public)
-                if not (isNull mainAsyncFunc) then
-                    do! mainAsyncFunc.Invoke(null, [||]) :?> Async<unit>
+                let asyncMainFunc = mainModule.GetMethod("AsyncMain", BindingFlags.Static ||| BindingFlags.Public)
+                if not (isNull asyncMainFunc) then
+                    do! asyncMainFunc.Invoke(null, [||]) :?> Async<unit>
             // Done
             return { this with status = Finished 0 }
         }

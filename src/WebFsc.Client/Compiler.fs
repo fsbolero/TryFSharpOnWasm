@@ -109,23 +109,23 @@ module Compiler =
         // Set the user run time HttpClient
         Env.SetHttp http
 
-    let mainAsyncTypeName = "Microsoft.FSharp.Core.unit -> \
+    let asyncMainTypeName = "Microsoft.FSharp.Core.unit -> \
                             Microsoft.FSharp.Control.Async<Microsoft.FSharp.Core.unit>"
 
-    let findMainAsync (checkRes: FSharpCheckProjectResults) =
+    let findAsyncMain (checkRes: FSharpCheckProjectResults) =
         match checkRes.AssemblySignature.FindEntityByPath ["Main"] with
         | Some m ->
             m.MembersFunctionsAndValues
             |> Seq.exists (fun v ->
                 v.IsModuleValueOrMember &&
-                v.FullType.Format(FSharpDisplayContext.Empty) = mainAsyncTypeName
+                v.FullType.Format(FSharpDisplayContext.Empty) = asyncMainTypeName
             )
         | None -> false
 
     /// Filter out "Main module of program is empty: nothing will happen when it is run"
-    /// when the program has a MainAsync : unit -> Async<unit>.
+    /// when the program has an AsyncMain : unit -> Async<unit>.
     let filterNoMainMessage checkRes (errors: FSharpErrorInfo[]) =
-        if findMainAsync checkRes then
+        if findAsyncMain checkRes then
             errors |> Array.filter (fun m -> m.ErrorNumber <> 988)
         else
             errors
