@@ -25,10 +25,35 @@ open System.Threading.Tasks
 open Microsoft.JSInterop
 open Mono.WebAssembly.Interop
 
+/// A wrapper object to pass callback functions to JavaScript.
+type Callback =
+
+    static member Of(f) =
+        new DotNetObjectRef(new StringCallback(f))
+
+// Need to do separate concrete types because JSInterop doesn't support
+// generic JSInvokable methods.
+and StringCallback(f: string -> unit) =
+
+    [<JSInvokable>]
+    member this.Invoke(arg) =
+        f arg
+
 type JS =
 
     static member Invoke<'Result>(name: string, [<ParamArray>] args: obj[]) =
-        (JSRuntime.Current :?> MonoWebAssemblyJSRuntime).Invoke<'Result>(name, args)
+        (JSRuntime.Current :?> MonoWebAssemblyJSRuntime).Invoke<'Result>(name, args = args)
+
+    static member InvokeAsync<'Result>(name: string, [<ParamArray>] args: obj[]) =
+        JSRuntime.Current.InvokeAsync<'Result>(name, args = args)
+
+    // IUriHelper doesn't support query params yet :(
+    static member GetQueryParam(param: string) =
+        JS.Invoke<string>("WebFsc.getQueryParam", param)
+        |> Option.ofObj
+
+    static member ListenToQueryParam(param: string, callback: string -> unit) =
+        JS.Invoke<unit>("WebFsc.listenToQueryParam", param, Callback.Of callback)
 
 module Cmd =
     open Elmish

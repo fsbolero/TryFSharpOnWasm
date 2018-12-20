@@ -6,7 +6,7 @@ WebFsc = {
     var editor = WebFsc.editor = ace.edit(id, { mode: "ace/mode/fsharp" });
     editor.session.setValue(initText);
     editor.session.on('change', () => {
-      onEdit.invokeMethodAsync('SetText', editor.session.getValue());
+      onEdit.invokeMethodAsync('Invoke', editor.session.getValue());
     });
     editor.focus();
   },
@@ -65,6 +65,28 @@ WebFsc = {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  },
+  /// Retrieve the given URL query parameter, or null if it is absent.
+  getQueryParam: function (param) {
+    return new URLSearchParams(window.location.search).get(param);
+  },
+  /// Listens to URL changes for the given query parameter.
+  /// Call callback on every URL change with this parameter.
+  listenToQueryParam: function (param, callback) {
+    addEventListener('popstate', function () {
+      console.log('before');
+      callback.invokeMethodAsync('Invoke', WebFsc.getQueryParam(param));
+      console.log('after');
+    });
+  },
+  /// Set the given URL query parameter to the given value, if it isn't already.
+  setQueryParam: function (param, value) {
+    let p = new URLSearchParams(window.location.search);
+    if (p.get(param) !== value) {
+      p.set(param, value);
+      let q = p.toString();
+      setTimeout(function () { history.pushState(q, '', '?' + q) }, 100);
+    }
   }
 };
 

@@ -31,7 +31,7 @@ type AppModel =
 
 type AppMessage =
     | InitializeCompiler
-    | InitializeEditor
+    | InitializeEditor of snippetId: option<string>
     | CompilerInitialized of Compiler
     | Message of Main.Message
     | Error of exn
@@ -43,6 +43,9 @@ type EditorBinding(dispatch: AppMessage -> unit) =
     member this.SetText(text: string) =
         dispatch (Message (Main.SetText text))
 
+let sourceDuringLoad snippetId =
+    if Option.isSome snippetId then "" else Main.defaultSource
+
 let update http message model =
     match message with
     | InitializeCompiler ->
@@ -51,12 +54,19 @@ let update http message model =
             return! Compiler.Create src |> Async.WithYield
         }) Main.defaultSource CompilerInitialized Error
     | CompilerInitialized compiler ->
-        Running (Main.initModel compiler), Cmd.ofMsg InitializeEditor
-    | InitializeEditor ->
+        let snippetId = JS.GetQueryParam "snippet"
+        let initSource = sourceDuringLoad snippetId
+        let initSnippetId = defaultArg snippetId Main.defaultSnippetId
+        Running (Main.initModel compiler initSource initSnippetId),
+        Cmd.ofMsg (InitializeEditor snippetId)
+    | InitializeEditor snippetId ->
         model,
         Cmd.ofSub(fun dispatch ->
-            let onEdit = new DotNetObjectRef(EditorBinding(dispatch))
-            JS.Invoke("WebFsc.initAce", "editor", Main.defaultSource, onEdit)
+            let onEdit = dispatch << Message << Main.SetText
+            JS.Invoke<unit>("WebFsc.initAce", "editor", sourceDuringLoad snippetId, Callback.Of onEdit)
+            let onSetSnippet = dispatch << Message << Main.LoadSnippet << Option.defaultValue Main.defaultSnippetId << Option.ofObj
+            Option.iter onSetSnippet snippetId
+            JS.ListenToQueryParam("snippet", onSetSnippet)
         )
     | Message msg ->
         match model with

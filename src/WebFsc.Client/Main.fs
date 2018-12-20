@@ -33,12 +33,13 @@ type Model =
         Executor: Executor
         Messages: FSharpErrorInfo[]
         Exception: option<exn>
-        SelectedSample: string
+        SelectedSnippet: string
     }
 
+let defaultSnippetId = "HelloWorld"
 let defaultSource = "printfn \"Hello, world!\"\n"
 
-let samples =
+let snippets =
     [
         "HelloWorld", "Hello, world!"
         "Arithmetic", "Arithmetic"
@@ -47,16 +48,14 @@ let samples =
         "TP_Xml", "XML Type Provider"
     ]
 
-let unselectedSample = "Unselected"
-
-let initModel compiler =
+let initModel compiler initSource initSnippetId =
     {
-        Text = defaultSource
+        Text = initSource
         Compiler = compiler
         Executor = Executor.create ()
         Messages = [||]
         Exception = None
-        SelectedSample = unselectedSample
+        SelectedSnippet = initSnippetId
     }
 
 type Message =
@@ -67,8 +66,8 @@ type Message =
     | Checked of FSharpErrorInfo[]
     | Error of exn
     | SelectMessage of FSharpErrorInfo
-    | LoadSample of string
-    | SampleLoaded of string
+    | LoadSnippet of string
+    | SnippetLoaded of string
 
 /// Find the linear position corresponding to the given line and column (base 1) in the given text.
 let findPosition (line: int) (col: int) (text: string) =
@@ -124,17 +123,20 @@ let update (http: HttpClient) message model =
         Cmd.attemptFunc ScreenOut.Clear () Error
     | SelectMessage message ->
         model,
-    | LoadSample sampleId ->
-        { model with SelectedSample = sampleId },
         Cmd.attemptFunc Ace.SelectMessage message Error
+    | LoadSnippet snippetId ->
+        { model with SelectedSnippet = snippetId },
         Cmd.ofTask
             (fun (s: string) -> http.GetStringAsync(s))
-            (sprintf "samples/%s.fsx" sampleId)
-            SampleLoaded Error
-    | SampleLoaded text ->
+            (sprintf "samples/%s.fsx" snippetId)
+            SnippetLoaded Error
+    | SnippetLoaded text ->
         model,
         Cmd.attemptFunc
-            (fun () -> JS.Invoke<unit>("WebFsc.setText", text)) () Error
+            (fun () ->
+                JS.Invoke<unit>("WebFsc.setText", text)
+                JS.Invoke<unit>("WebFsc.setQueryParam", "snippet", model.SelectedSnippet)
+            ) () Error
 
 type Main = Template<"main.html">
 
@@ -149,7 +151,7 @@ let compilerMessage (msg: FSharpErrorInfo) dispatch =
         .Select(fun _ -> dispatch (SelectMessage msg))
         .Elt()
 
-let sampleOption (id: string, label: string) =
+let snippetOption (id: string, label: string) =
     option [attr.value id] [text label]
 
 let view model dispatch =
@@ -170,6 +172,6 @@ let view model dispatch =
                 | None -> empty
                 | Some e -> Main.SimpleMessage().Severity("Error").Message(string e).Elt()
         ])
-        .LoadSample(model.SelectedSample, fun s -> dispatch (LoadSample s))
-        .Samples(forEach samples sampleOption)
+        .LoadSnippet(model.SelectedSnippet, fun s -> dispatch (LoadSnippet s))
+        .Snippets(forEach snippets snippetOption)
         .Elt()
