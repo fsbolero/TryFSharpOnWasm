@@ -121,3 +121,13 @@ a.compiler-message-link .compiler-message.Warning:hover {
   border: solid 1px goldenrod;
   position: absolute;
 }
+
+/* Ace completion */
+.ace_autocomplete .ace_text-layer {
+  width: 100%;
+}
+
+.ace_autocomplete .ace_completion-meta {
+  margin-top: 0;
+  float: right;
+}

@@ -1,12 +1,23 @@
 WebFsc = {
   /// Initialize the Ace editor.
-  initAce: function (id, initText, onEdit) {
+  initAce: function (id, initText, onEdit, complete) {
     Split(['#editor', '#outputs'], { gutterSize: 5 });
     Split(['#messages-panel', '#stdout-panel'], { gutterSize: 5, direction: 'vertical' });
+    ace.require('ace/ext/language_tools');
     var editor = WebFsc.editor = ace.edit(id, { mode: "ace/mode/fsharp" });
+    editor.setOptions({
+      enableBasicAutocompletion: true
+    });
+    editor.completers = [WebFsc.completer(complete)];
     editor.session.setValue(initText);
-    editor.session.on('change', () => {
+    editor.session.on('change', (ev) => {
       onEdit.invokeMethodAsync('Invoke', editor.session.getValue());
+      // Uncomment the following to activate autocomplete on dot:
+      //if (ev.action === 'insert' && ev.lines.length === 1 && ev.lines[0] === '.') {
+      //  setTimeout(function () {
+      //    editor.commands.byName.startAutocomplete.exec(editor);
+      //  }, 50);
+      //}
     });
     editor.focus();
   },
@@ -35,6 +46,16 @@ WebFsc = {
     var range = new ace.Range(startLine, startCol, endLine, endCol);
     WebFsc.editor.session.getSelection()
       .setSelectionRange(range, false);
+  },
+  /// Ace autocomplete config.
+  completer: function (complete) {
+    return {
+      getCompletions: function (editor, session, pos, prefix, callback) {
+        let line = session.getLine(pos.row);
+        complete.invokeMethodAsync("Complete", pos.row + 1, pos.column - 1, line)
+          .then(results => callback(null, results));
+      }
+    };
   },
   /// Write the given text to standard output, or standard error if isErr is true.
   write: function (s, isErr) {

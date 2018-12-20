@@ -63,22 +63,26 @@ type Message =
     | Compile
     | Compiled of Compiler
     | RunFinished of Executor
-    | Checked of FSharpErrorInfo[]
+    | Checked of Compiler * FSharpErrorInfo[]
+    | Complete of int * int * string * (FSharpDeclarationListItem[] -> unit)
     | Error of exn
     | SelectMessage of FSharpErrorInfo
     | LoadSnippet of string
     | SnippetLoaded of string
 
-/// Find the linear position corresponding to the given line and column (base 1) in the given text.
-let findPosition (line: int) (col: int) (text: string) =
-    let rec go pos l =
-        if l = line then
-            pos + col
-        else
-            match text.IndexOf('\n', pos) with
-            | -1 -> text.Length // position is beyond the end of text
-            | pos -> go (pos + 1) (l + 1)
-    go 0 1
+/// A wrapper object to trigger autocompletion
+type Autocompleter(dispatch: int * int * string * (FSharpDeclarationListItem[] -> unit) -> unit) =
+    [<JSInvokable>]
+    member this.Complete(line, col, lineText) =
+        let tcs = TaskCompletionSource<Ace.Completion[]>()
+        dispatch (line, col, lineText,
+            tcs.SetResult << Array.map (fun item ->
+                {
+                    caption = item.Name
+                    value = item.NameInCode
+                    meta = string item.Glyph
+                }))
+        tcs.Task
 
 /// Update the application model.
 let update (http: HttpClient) message model =
@@ -113,9 +117,15 @@ let update (http: HttpClient) message model =
     | RunFinished executor ->
         { model with Executor = executor },
         []
-    | Checked errors ->
-        { model with Messages = errors },
+    | Checked (compiler, errors) ->
+        { model with Compiler = compiler; Messages = errors },
         Cmd.attemptFunc Ace.SetAnnotations errors Error
+    | Complete (line, col, lineText, callback) ->
+        model,
+        Cmd.attemptAsync (fun args -> async {
+            let! res = model.Compiler.Autocomplete args
+            callback res
+        }) (line, col, lineText) Error
     | Error exn ->
         { model with
             Exception = Some exn

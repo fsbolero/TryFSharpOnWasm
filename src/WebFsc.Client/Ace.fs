@@ -53,3 +53,10 @@ let SelectMessage (info: FSharpErrorInfo) =
         info.StartLineAlternate - 1, info.StartColumn,
         info.EndLineAlternate - 1, info.EndColumn
     )
+
+type Completion =
+    {
+        caption: string
+        value: string
+        meta: string
+    }

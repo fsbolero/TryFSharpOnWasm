@@ -36,13 +36,6 @@ type AppMessage =
     | Message of Main.Message
     | Error of exn
 
-/// A wrapper object to allow Ace to dispatch messages on edit
-type EditorBinding(dispatch: AppMessage -> unit) =
-
-    [<JSInvokable>]
-    member this.SetText(text: string) =
-        dispatch (Message (Main.SetText text))
-
 let sourceDuringLoad snippetId =
     if Option.isSome snippetId then "" else Main.defaultSource
 
@@ -63,7 +56,10 @@ let update http message model =
         model,
         Cmd.ofSub(fun dispatch ->
             let onEdit = dispatch << Message << Main.SetText
-            JS.Invoke<unit>("WebFsc.initAce", "editor", sourceDuringLoad snippetId, Callback.Of onEdit)
+            JS.Invoke<unit>("WebFsc.initAce", "editor",
+                sourceDuringLoad snippetId,
+                Callback.Of onEdit,
+                new DotNetObjectRef(Main.Autocompleter(dispatch << Message << Main.Complete)))
             let onSetSnippet = dispatch << Message << Main.LoadSnippet << Option.defaultValue Main.defaultSnippetId << Option.ofObj
             Option.iter onSetSnippet snippetId
             JS.ListenToQueryParam("snippet", onSetSnippet)

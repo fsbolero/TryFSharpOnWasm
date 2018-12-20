@@ -21,8 +21,8 @@ namespace WebFsc.Client
 open System
 open System.IO
 open System.Reflection
+open Microsoft.FSharp.Compiler
 open Microsoft.FSharp.Compiler.SourceCodeServices
-open Microsoft.JSInterop
 
 type CompilerStatus =
     | Standby
@@ -30,11 +30,26 @@ type CompilerStatus =
     | Failed of FSharpErrorInfo[]
     | Succeeded of string * FSharpErrorInfo[]
 
+type FileResults =
+    {
+        Parse: FSharpParseFileResults
+        Check: FSharpCheckFileResults
+    }
+
+module FileResults =
+
+    let OfRes (parseRes, checkRes) =
+        {
+            Parse = parseRes
+            Check = checkRes
+        }
+
 type Compiler =
     {
         Checker: FSharpChecker
         Options: FSharpProjectOptions
         CheckResults: FSharpCheckProjectResults
+        MainFile: FileResults
         Sequence: int
         Status: CompilerStatus
     }
@@ -76,12 +91,14 @@ module Compiler =
         let options = Options checker outFile
         File.WriteAllText(inFile, source)
         let! checkRes = checker.ParseAndCheckProject(options)
+        let! fileRes = checker.GetBackgroundCheckResultsForFileInProject(inFile, options)
         // The first compilation takes longer, so we run one during load
         let! _ = checker.Compile(checkRes)
         return {
             Checker = checker
             Options = options
             CheckResults = checkRes
+            MainFile = FileResults.OfRes fileRes
             Sequence = 0
             Status = Standby
         }
@@ -158,16 +175,23 @@ type Compiler with
                     Status = Succeeded (outFile, errors) }
         }
 
-    member comp.TriggerCheck(source: string, dispatch: FSharpErrorInfo[] -> unit) =
+    member comp.TriggerCheck(source: string, dispatch: Compiler * FSharpErrorInfo[] -> unit) =
         checkDelay.Trigger(async {
             let! parseRes, checkRes = comp.Checker.ParseAndCheckFileInProject(inFile, 0, source, comp.Options)
-            dispatch [|
-                yield! parseRes.Errors
+            let checkRes =
                 match checkRes with
-                | FSharpCheckFileAnswer.Aborted -> ()
-                | FSharpCheckFileAnswer.Succeeded checkRes -> yield! checkRes.Errors
-            |]
+                | FSharpCheckFileAnswer.Succeeded res -> res
+                | FSharpCheckFileAnswer.Aborted -> comp.MainFile.Check
+            dispatch
+                ({ comp with MainFile = FileResults.OfRes (parseRes, checkRes) },
+                Array.append parseRes.Errors checkRes.Errors)
         })
+
+    member comp.Autocomplete(line: int, col: int, lineText: string) = async {
+        let partialName = QuickParse.GetPartialLongNameEx(lineText, col)
+        let! res = comp.MainFile.Check.GetDeclarationListInfo(Some comp.MainFile.Parse, line, lineText, partialName)
+        return res.Items
+    }
 
     member comp.Messages =
         match comp.Status with
