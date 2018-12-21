@@ -35,7 +35,6 @@ git rm -rf *
 cp -r -force ../../publish/WebFsc.Client/dist/* .
 [System.IO.File]::WriteAllText("$pwd/.nojekyll", "")
 [System.IO.File]::WriteAllText("$pwd/CNAME", "fsbolero.io")
-(get-content '.\index.html' -encoding utf8).replace('<base href="/"', '<base href="/TryFSharpOnWasm/"') | set-content '.\index.html' -encoding utf8
 git add . 2>git.log
 git commit --amend -am $msg
 git push -f -u origin gh-pages
