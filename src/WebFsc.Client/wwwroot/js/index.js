@@ -54,8 +54,15 @@ WebFsc = {
         let line = session.getLine(pos.row);
         complete.invokeMethodAsync("Complete", pos.row + 1, pos.column - 1, line)
           .then(results => callback(null, results));
+      },
+      getDocTooltip: function (item) {
+        return { docHTML: ['<pre>', item.cache.invokeMethod('GetTooltip', item.index), '</pre>'].join('') };
       }
     };
+  },
+  /// Called by DeclarationSet to signal that it is done computing the tooltip.
+  updateTooltip: function () {
+    WebFsc.editor.completer.updateDocTooltip();
   },
   /// Write the given text to standard output, or standard error if isErr is true.
   write: function (s, isErr) {

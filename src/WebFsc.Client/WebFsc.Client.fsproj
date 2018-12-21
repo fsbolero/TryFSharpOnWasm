@@ -10,6 +10,7 @@
     <Compile Include="Executor.fs" />
     <Compile Include="Ace.fs" />
     <Compile Include="Compiler.fs" />
+    <Compile Include="Autocomplete.fs" />
     <Compile Include="Main.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Startup.fs" />

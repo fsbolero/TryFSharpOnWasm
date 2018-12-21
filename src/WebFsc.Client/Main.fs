@@ -18,10 +18,9 @@
 
 module WebFsc.Client.Main
 
-open System.Threading.Tasks
+open System
 open System.Net.Http
 open Microsoft.FSharp.Compiler.SourceCodeServices
-open Microsoft.JSInterop
 open Elmish
 open Bolero
 open Bolero.Html
@@ -34,6 +33,7 @@ type Model =
         Messages: FSharpErrorInfo[]
         Exception: option<exn>
         SelectedSnippet: string
+        LatestCompleter: option<IDisposable>
     }
 
 let defaultSnippetId = "HelloWorld"
@@ -56,6 +56,7 @@ let initModel compiler initSource initSnippetId =
         Messages = [||]
         Exception = None
         SelectedSnippet = initSnippetId
+        LatestCompleter = None
     }
 
 type Message =
@@ -64,25 +65,12 @@ type Message =
     | Compiled of Compiler
     | RunFinished of Executor
     | Checked of Compiler * FSharpErrorInfo[]
-    | Complete of int * int * string * (FSharpDeclarationListItem[] -> unit)
+    | Complete of int * int * string * (FSharpDeclarationListItem[] -> IDisposable)
+    | CompletionSent of IDisposable
     | Error of exn
     | SelectMessage of FSharpErrorInfo
     | LoadSnippet of string
     | SnippetLoaded of string
-
-/// A wrapper object to trigger autocompletion
-type Autocompleter(dispatch: int * int * string * (FSharpDeclarationListItem[] -> unit) -> unit) =
-    [<JSInvokable>]
-    member this.Complete(line, col, lineText) =
-        let tcs = TaskCompletionSource<Ace.Completion[]>()
-        dispatch (line, col, lineText,
-            tcs.SetResult << Array.map (fun item ->
-                {
-                    caption = item.Name
-                    value = item.NameInCode
-                    meta = string item.Glyph
-                }))
-        tcs.Task
 
 /// Update the application model.
 let update (http: HttpClient) message model =
@@ -121,11 +109,14 @@ let update (http: HttpClient) message model =
         { model with Compiler = compiler; Messages = errors },
         Cmd.attemptFunc Ace.SetAnnotations errors Error
     | Complete (line, col, lineText, callback) ->
-        model,
-        Cmd.attemptAsync (fun args -> async {
+        model.LatestCompleter |> Option.iter (fun d -> d.Dispose())
+        { model with LatestCompleter = None },
+        Cmd.ofAsync (fun args -> async {
             let! res = model.Compiler.Autocomplete args
-            callback res
-        }) (line, col, lineText) Error
+            return callback res
+        }) (line, col, lineText) CompletionSent Error
+    | CompletionSent disp ->
+        { model with LatestCompleter = Some disp }, []
     | Error exn ->
         { model with
             Exception = Some exn

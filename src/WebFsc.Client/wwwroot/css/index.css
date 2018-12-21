@@ -64,6 +64,10 @@ html, body, #main {
   overflow: auto;
 }
 
+pre {
+  font-family: 'Roboto Mono', monospace;
+}
+
 .gutter-horizontal {
   cursor: col-resize;
 }
@@ -130,4 +134,9 @@ a.compiler-message-link .compiler-message.Warning:hover {
 .ace_autocomplete .ace_completion-meta {
   margin-top: 0;
   float: right;
+}
+
+.ace_tooltip pre {
+  padding: 0;
+  background: transparent;
 }
