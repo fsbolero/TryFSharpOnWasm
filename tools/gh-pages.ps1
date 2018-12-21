@@ -33,6 +33,7 @@ if ($env -eq "appveyor") {
 git rm -rf *
 cp -r -force ../../publish/WebFsc.Client/dist/* .
 echo $null >> .nojekyll
+echo fsbolero.io > CNAME
 (get-content '.\index.html' -encoding utf8).replace('<base href="/"', '<base href="/TryFSharpOnWasm/"') | set-content '.\index.html' -encoding utf8
 git add . 2>git.log
 git commit --amend -am $msg
