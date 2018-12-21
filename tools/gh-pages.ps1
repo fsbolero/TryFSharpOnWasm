@@ -24,16 +24,17 @@ if ($env -eq "appveyor") {
   git config user.name "AppVeyor"
   git config user.email "websharper-support@intellifactory.com"
 } else {
+  mkdir -f build
   clearDir
   cd build
-  git clone .. gh-pages -b gh-pages --single-branch
+  git clone ../.git gh-pages -b gh-pages --single-branch
   cd gh-pages
 }
 
 git rm -rf *
 cp -r -force ../../publish/WebFsc.Client/dist/* .
-echo $null >> .nojekyll
-[System.IO.File]::WriteAllText("CNAME", "fsbolero.io")
+[System.IO.File]::WriteAllText("$pwd/.nojekyll", "")
+[System.IO.File]::WriteAllText("$pwd/CNAME", "fsbolero.io")
 (get-content '.\index.html' -encoding utf8).replace('<base href="/"', '<base href="/TryFSharpOnWasm/"') | set-content '.\index.html' -encoding utf8
 git add . 2>git.log
 git commit --amend -am $msg
