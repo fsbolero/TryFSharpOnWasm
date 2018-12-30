@@ -19,7 +19,7 @@
     <BlazorLinkerDescriptor Include="linker.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\WebFsc.Env\WebFsc.Env.fsproj" />
+    <ProjectReference Include="..\WebFsc.Env\WebFsc.Env.fsproj" />
   </ItemGroup>
   <Target Name="CopyCustomBlazor" AfterTargets="_BlazorCopyFilesToOutputDirectory">
     <!-- Lightly customized version of blazor.webassembly.js.
