@@ -85,6 +85,10 @@ module Async =
 
 module ScreenOut =
 
+    /// <summary>
+    /// A TextWriter that sends text to the screen via the js function WebFsc.write.
+    /// If <c>isErr</c> is true, sends it as error output; otherwise, as standard output.
+    /// </summary>
     type Writer(isErr: bool) =
         inherit TextWriter()
 
@@ -112,6 +116,10 @@ module ScreenOut =
             return res
         }
 
+    /// <summary>
+    /// Clear the screen output.
+    /// Can be called inside or outside a <c>Wrap</c>-ped task.
+    /// </summary>
     let Clear () =
         JS.Invoke("WebFsc.clear") : unit
 

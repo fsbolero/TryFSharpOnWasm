@@ -16,6 +16,7 @@
 //
 // $end{copyright}
 
+/// MVU for the full application, including loading screen.
 module WebFsc.Client.App
 
 open System.Net.Http
@@ -26,7 +27,9 @@ open Bolero
 open Bolero.Html
 
 type AppModel =
+    /// The app is initializing (show a loading screen).
     | Initializing
+    /// The app is loaded and running.
     | Running of Main.Model
 
 type AppMessage =

@@ -25,11 +25,17 @@ type ExecutorStatus =
     | Running
     | Finished of int
 
+/// Execute compiled assemblies.
 type Executor =
     {
         status: ExecutorStatus
     }
 
+    /// <summary>
+    /// Load an assembly from the given path and execute its entry point.
+    /// Also execute its <c>Main.AsyncMain : unit -> Async&lt;unit&gt;</c>, if any.
+    /// </summary>
+    /// <param name="path">The location of the assembly to execute.</param>
     member this.Run(path: string) =
         { this with status = Running },
         fun () -> async {
@@ -48,5 +54,6 @@ type Executor =
 
 module Executor =
 
+    /// Create an executor in standby mode.
     let create () =
         { status = Standby }

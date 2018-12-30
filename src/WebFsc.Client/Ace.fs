@@ -16,22 +16,33 @@
 //
 // $end{copyright}
 
+/// Bindings for Ace Editor. https://ace.c9.io/
 module WebFsc.Client.Ace
 
 open System.Threading.Tasks
 open Microsoft.FSharp.Compiler.SourceCodeServices
 open Microsoft.JSInterop
 
+/// Highlight a warning or an error.
+/// This combines an Ace Marker (highlight a range of code)
+/// and an Ace Annotation (icon in the margin with text on hover).
 type Annotation =
     {
+        /// The base-0 line of the start of the annotation.
         row: int
+        /// The base-1 column of the start of the annotation.
         column: int
+        /// The base-0 line of the end of the annotation.
         y2: int
+        /// The base-1 column of the end of the annotation.
         x2: int
+        /// The message displayed on hover.
         text: string
+        /// "warning" or "error".
         ``type``: string
     }
 
+/// Set the currently displayed annotations.
 let SetAnnotations (messages: FSharpErrorInfo[]) =
     let annotations = messages |> Array.map (fun info ->
         {
@@ -48,6 +59,7 @@ let SetAnnotations (messages: FSharpErrorInfo[]) =
     )
     JS.Invoke<unit>("WebFsc.setAnnotations", annotations)
 
+/// Focus the editor and select the code range of the given message.
 let SelectMessage (info: FSharpErrorInfo) =
     JS.Invoke<unit>("WebFsc.selectRange",
         info.StartLineAlternate - 1, info.StartColumn,

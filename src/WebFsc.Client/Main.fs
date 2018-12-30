@@ -16,6 +16,7 @@
 //
 // $end{copyright}
 
+/// MVU for the main running application.
 module WebFsc.Client.Main
 
 open System
@@ -39,6 +40,8 @@ type Model =
 let defaultSnippetId = "HelloWorld"
 let defaultSource = "printfn \"Hello, world!\"\n"
 
+/// Code snippets available: ("id", "display name").
+/// The id is also the filename minus .fsx extension.
 let snippets =
     [
         "HelloWorld", "Hello, world!"
