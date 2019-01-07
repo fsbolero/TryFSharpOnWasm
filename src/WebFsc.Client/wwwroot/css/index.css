@@ -29,6 +29,7 @@ html, body, #main {
 #main > section {
   flex: 1;
   background: #ddd;
+  max-height: calc(100% - 3.25rem); /* 100% - header height; fixes #2 */
 }
 
 .split-h {
