@@ -34,7 +34,7 @@ if ($env -eq "appveyor") {
 git rm -rf *
 cp -r -force ../../publish/WebFsc.Client/dist/* .
 [System.IO.File]::WriteAllText("$pwd/.nojekyll", "")
-[System.IO.File]::WriteAllText("$pwd/CNAME", "fsbolero.io")
+[System.IO.File]::WriteAllText("$pwd/CNAME", "tryfsharp.fsbolero.io")
 git add . 2>git.log
 git commit --amend -am $msg
 git push -f -u origin gh-pages
