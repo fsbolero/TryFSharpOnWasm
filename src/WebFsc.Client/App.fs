@@ -25,6 +25,7 @@ open Microsoft.JSInterop
 open Elmish
 open Bolero
 open Bolero.Html
+open Bolero.Templating.Client
 
 type AppModel =
     /// The app is initializing (show a loading screen).
@@ -92,5 +93,7 @@ type MainApp() =
         Program.mkProgram
             (fun _ -> Initializing, Cmd.ofMsg InitializeCompiler)
             (update this.Http) view
-        //|> Program.withConsoleTrace
+#if DEBUG
+        |> Program.withHotReloading
+#endif
 

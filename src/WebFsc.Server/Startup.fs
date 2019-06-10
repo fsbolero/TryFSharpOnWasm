@@ -10,26 +10,30 @@ open Microsoft.AspNetCore.StaticFiles
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.FileProviders
 open WebFsc
+open Bolero.Templating.Server
 
 type Startup() =
+
+    let (</>) x y = Path.Combine(x, y)
+    let contentTypeProvider = FileExtensionContentTypeProvider()
+    do  contentTypeProvider.Mappings.[".fsx"] <- "text/x-fsharp"
+        contentTypeProvider.Mappings.[".scss"] <- "text/x-scss"
+    let clientProjPath = Path.Combine(__SOURCE_DIRECTORY__, "..", "WebFsc.Client")
+    let fileProvider path = new PhysicalFileProvider(path)
 
     // This method gets called by the runtime. Use this method to add services to the container.
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     member this.ConfigureServices(services: IServiceCollection) =
-        ()
+        services.AddHotReload(clientProjPath)
+        |> ignore
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     member this.Configure(app: IApplicationBuilder, env: IHostingEnvironment) =
-        let provider = FileExtensionContentTypeProvider()
-        provider.Mappings.[".fsx"] <- "text/x-fsharp"
-
         app.UseStaticFiles(
             StaticFileOptions(
-                FileProvider = new PhysicalFileProvider(
-                    Path.Combine(
-                        Path.GetDirectoryName(Directory.GetCurrentDirectory()),
-                        "WebFsc.Client", "wwwroot")),
-                ContentTypeProvider = provider))
+                FileProvider = fileProvider (clientProjPath </> "wwwroot"),
+                ContentTypeProvider = contentTypeProvider))
+            .UseHotReload()
             .UseBlazor<Client.Startup>()
         |> ignore
 

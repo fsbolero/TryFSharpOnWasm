@@ -4,3 +4,5 @@ Microsoft.AspNetCore.Blazor.Cli
 Bolero
 Bolero.FSharp.Compiler.Service
 Bolero.FSharp.Data
+BuildWebCompiler
+Bolero.HotReload

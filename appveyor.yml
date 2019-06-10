@@ -4,18 +4,19 @@ image: Visual Studio 2017
 build:
   verbosity: minimal
 
-branches:
-  only:
-  - master
-
 init:
-- git config --global core.autocrlf input
+  - git config --global core.autocrlf input
+  - ps: .\install.ps1
 
 build_script:
-- ps: dotnet publish src/WebFsc.Client/ -o $PWD/publish/ -c Release
+  - ps: dotnet publish src/WebFsc.Client/ -o $PWD/publish/ -c Release
 
-on_success:
-- ps: .\tools\gh-pages.ps1 -env appveyor
+for:
+  - branches:
+      only:
+        - master
+    on_success:
+      - ps: .\tools\gh-pages.ps1 -env appveyor
 
 environment:
   GH_TOKEN:

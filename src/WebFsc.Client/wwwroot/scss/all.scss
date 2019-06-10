@@ -1,0 +1,13 @@
+
+@import "bulma/sass/utilities/_all.sass";
+@import "bulma/sass/base/_all.sass";
+
+$navbar-breakpoint: $tablet;
+
+@import "bulma/sass/components/navbar.sass";
+@import "bulma/sass/elements/button.sass";
+@import "bulma/sass/form/_all.sass";
+
+@import "@fortawesome/fontawesome-free/scss/solid.scss";
+
+@import "index.scss";

@@ -1,0 +1,23 @@
+{
+  "name": "tryfsharp.fsbolero.io",
+  "version": "1.0.0",
+  "description": "Try F# on WebAssembly",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fsbolero/tryfsharponwasm.git"
+  },
+  "author": "IntelliFactory",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/fsbolero/tryfsharponwasm/issues"
+  },
+  "homepage": "https://github.com/fsbolero/tryfsharponwasm#readme",
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.9.0",
+    "bulma": "^0.7.5"
+  }
+}

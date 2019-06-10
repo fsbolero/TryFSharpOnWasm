@@ -4,6 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RunCommand>dotnet</RunCommand>
     <RunArguments>blazor serve</RunArguments>
+    <TypeScriptToolsVersion>3.3</TypeScriptToolsVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Utilities.fs" />
@@ -17,6 +19,9 @@
     <None Include="linker.xml" />
     <Content Include="main.html" />
     <BlazorLinkerDescriptor Include="linker.xml" />
+    <Content Update="wwwroot/package*.json">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WebFsc.Env\WebFsc.Env.fsproj" />
