@@ -43,7 +43,7 @@ type Annotation =
     }
 
 /// Set the currently displayed annotations.
-let SetAnnotations (messages: FSharpErrorInfo[]) =
+let SetAnnotations (js: IJSInProcessRuntime) (messages: FSharpErrorInfo[]) =
     let annotations = messages |> Array.map (fun info ->
         {
             row = info.StartLineAlternate - 1
@@ -57,11 +57,11 @@ let SetAnnotations (messages: FSharpErrorInfo[]) =
                 | FSharpErrorSeverity.Error -> "error"
         }
     )
-    JS.Invoke<unit>("WebFsc.setAnnotations", annotations)
+    js.Invoke<unit>("WebFsc.setAnnotations", annotations)
 
 /// Focus the editor and select the code range of the given message.
-let SelectMessage (info: FSharpErrorInfo) =
-    JS.Invoke<unit>("WebFsc.selectRange",
+let SelectMessage (js: IJSInProcessRuntime) (info: FSharpErrorInfo) =
+    js.Invoke<unit>("WebFsc.selectRange",
         info.StartLineAlternate - 1, info.StartColumn,
         info.EndLineAlternate - 1, info.EndColumn
     )

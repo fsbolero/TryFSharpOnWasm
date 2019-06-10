@@ -20,7 +20,7 @@
 module WebFsc.Client.App
 
 open System.Net.Http
-open Microsoft.AspNetCore.Blazor.Components
+open Microsoft.AspNetCore.Components
 open Microsoft.JSInterop
 open Elmish
 open Bolero
@@ -43,7 +43,7 @@ type AppMessage =
 let sourceDuringLoad snippetId =
     if Option.isSome snippetId then "" else Main.defaultSource
 
-let update http message model =
+let update (js: IJSInProcessRuntime) http message model =
     match message with
     | InitializeCompiler ->
         model, Cmd.ofAsync (fun src -> async {
@@ -51,7 +51,7 @@ let update http message model =
             return! Compiler.Create src |> Async.WithYield
         }) Main.defaultSource CompilerInitialized Error
     | CompilerInitialized compiler ->
-        let snippetId = JS.GetQueryParam "snippet"
+        let snippetId = js.GetQueryParam "snippet"
         let initSource = sourceDuringLoad snippetId
         let initSnippetId = defaultArg snippetId Main.defaultSnippetId
         Running (Main.initModel compiler initSource initSnippetId),
@@ -60,19 +60,19 @@ let update http message model =
         model,
         Cmd.ofSub(fun dispatch ->
             let onEdit = dispatch << Message << Main.SetText
-            JS.Invoke<unit>("WebFsc.initAce", "editor",
+            js.Invoke<unit>("WebFsc.initAce", "editor",
                 sourceDuringLoad snippetId,
                 Callback.Of onEdit,
-                new DotNetObjectRef(Autocompleter(dispatch << Message << Main.Complete)))
+                new DotNetObjectRef(Autocompleter(dispatch << Message << Main.Complete, js)))
             let onSetSnippet = dispatch << Message << Main.LoadSnippet << Option.defaultValue Main.defaultSnippetId << Option.ofObj
             Option.iter onSetSnippet snippetId
-            JS.ListenToQueryParam("snippet", onSetSnippet)
+            js.ListenToQueryParam("snippet", onSetSnippet)
         )
     | Message msg ->
         match model with
         | Initializing -> model, [] // Shouldn't happen
         | Running model ->
-            let model, cmd = Main.update http msg model
+            let model, cmd = Main.update js http msg model
             Running model, Cmd.map Message cmd
     | Error exn ->
         eprintfn "%A" exn
@@ -92,7 +92,7 @@ type MainApp() =
     override this.Program =
         Program.mkProgram
             (fun _ -> Initializing, Cmd.ofMsg InitializeCompiler)
-            (update this.Http) view
+            (update (this.JSRuntime :?> _) this.Http) view
 #if DEBUG
         |> Program.withHotReloading
 #endif

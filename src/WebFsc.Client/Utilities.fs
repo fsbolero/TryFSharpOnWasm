@@ -39,21 +39,18 @@ and StringCallback(f: string -> unit) =
     member this.Invoke(arg) =
         f arg
 
-type JS =
+[<AutoOpen>]
+module JSExtensions =
 
-    static member Invoke<'Result>(name: string, [<ParamArray>] args: obj[]) =
-        (JSRuntime.Current :?> MonoWebAssemblyJSRuntime).Invoke<'Result>(name, args = args)
+    type IJSInProcessRuntime with
 
-    static member InvokeAsync<'Result>(name: string, [<ParamArray>] args: obj[]) =
-        JSRuntime.Current.InvokeAsync<'Result>(name, args = args)
+        // IUriHelper doesn't support query params yet :(
+        member this.GetQueryParam(param: string) =
+            this.Invoke<string>("WebFsc.getQueryParam", param)
+            |> Option.ofObj
 
-    // IUriHelper doesn't support query params yet :(
-    static member GetQueryParam(param: string) =
-        JS.Invoke<string>("WebFsc.getQueryParam", param)
-        |> Option.ofObj
-
-    static member ListenToQueryParam(param: string, callback: string -> unit) =
-        JS.Invoke<unit>("WebFsc.listenToQueryParam", param, Callback.Of callback)
+        member this.ListenToQueryParam(param: string, callback: string -> unit) =
+            this.Invoke<unit>("WebFsc.listenToQueryParam", param, Callback.Of callback)
 
 module Cmd =
     open Elmish
@@ -89,7 +86,7 @@ module ScreenOut =
     /// A TextWriter that sends text to the screen via the js function WebFsc.write.
     /// If <c>isErr</c> is true, sends it as error output; otherwise, as standard output.
     /// </summary>
-    type Writer(isErr: bool) =
+    type Writer(isErr: bool, js: IJSInProcessRuntime) =
         inherit TextWriter()
 
         override this.Encoding = Text.Encoding.UTF8
@@ -98,18 +95,18 @@ module ScreenOut =
             this.Write(string c)
 
         override this.Write(s: string) =
-            JS.Invoke<unit>("WebFsc.write", s, isErr)
+            js.Invoke<unit>("WebFsc.write", s, isErr)
 
-    let private out = new Writer(false)
-    let private err = new Writer(true)
+    let private out js = new Writer(false, js)
+    let private err js = new Writer(true, js)
 
     /// Run this task with its output redirected to the screen.
-    let Wrap (task: Async<_>) =
+    let Wrap js (task: Async<_>) =
         let normalOut = stdout
         let normalErr = stderr
         async {
-            Console.SetOut(out)
-            Console.SetError(err)
+            Console.SetOut(out js)
+            Console.SetError(err js)
             let! res = task
             Console.SetOut(normalOut)
             Console.SetError(normalErr)
@@ -120,8 +117,8 @@ module ScreenOut =
     /// Clear the screen output.
     /// Can be called inside or outside a <c>Wrap</c>-ped task.
     /// </summary>
-    let Clear () =
-        JS.Invoke("WebFsc.clear") : unit
+    let Clear (js: IJSInProcessRuntime) =
+        js.Invoke("WebFsc.clear") : unit
 
 /// Delays computations by the given amount, cancelling previous computations
 /// if triggering during their delay.

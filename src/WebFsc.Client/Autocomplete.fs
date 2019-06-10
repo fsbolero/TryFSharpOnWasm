@@ -33,7 +33,7 @@ type Completion =
     }
 
 /// A set of autocomplete items, used to cache computed tooltips.
-type CompletionCache(items: FSharpDeclarationListItem[]) =
+type CompletionCache(items: FSharpDeclarationListItem[], js: IJSInProcessRuntime) =
 
     let tooltips = Array.create items.Length None
 
@@ -56,20 +56,20 @@ type CompletionCache(items: FSharpDeclarationListItem[]) =
                                 yield ttelt.MainDescription
                 }
                 tooltips.[index] <- Some tt
-                JS.Invoke("WebFsc.updateTooltip")
+                js.Invoke("WebFsc.updateTooltip")
             }
             |> Async.Start
             "Loading..."
         | Some tt -> tt
 
 /// A wrapper object to trigger autocompletion.
-type Autocompleter(dispatch: int * int * string * (FSharpDeclarationListItem[] -> IDisposable) -> unit) =
+type Autocompleter(dispatch: int * int * string * (FSharpDeclarationListItem[] -> IDisposable) -> unit, js) =
 
     [<JSInvokable>]
     member this.Complete(line, col, lineText) =
         let tcs = TaskCompletionSource<Completion[]>()
         dispatch (line, col, lineText, fun items ->
-            let cache = new DotNetObjectRef(CompletionCache(items))
+            let cache = new DotNetObjectRef(CompletionCache(items, js))
             items
             |> Array.mapi (fun i item ->
                 {

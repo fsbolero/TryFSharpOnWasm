@@ -23,6 +23,7 @@ open System.IO
 open System.Reflection
 open Microsoft.FSharp.Compiler
 open Microsoft.FSharp.Compiler.SourceCodeServices
+open Microsoft.JSInterop
 
 type CompilerStatus =
     | Standby
@@ -130,9 +131,9 @@ module Compiler =
     /// Turn a file in the virtual filesystem into a browser download.
     /// </summary>
     /// <param name="path">The file's location in the virtual filesystem</param>
-    let DownloadFile (path: string) =
+    let DownloadFile (js: IJSInProcessRuntime) (path: string) =
         printfn "Downloading output..."
-        try JS.Invoke<unit>("WebFsc.getCompiledFile", path)
+        try js.Invoke<unit>("WebFsc.getCompiledFile", path)
         with exn -> eprintfn "%A" exn
 
     /// <summary>

@@ -18,8 +18,8 @@
 
 namespace WebFsc.Client
 
-open Microsoft.AspNetCore.Blazor.Builder
 open Microsoft.AspNetCore.Blazor.Hosting
+open Microsoft.AspNetCore.Components.Builder
 open Microsoft.Extensions.DependencyInjection
 
 type Startup() =
@@ -27,7 +27,7 @@ type Startup() =
     member __.ConfigureServices(services: IServiceCollection) =
         ()
 
-    member __.Configure(app: IBlazorApplicationBuilder) =
+    member __.Configure(app: IComponentsApplicationBuilder) =
         app.AddComponent<App.MainApp>("#main")
 
 module Program =

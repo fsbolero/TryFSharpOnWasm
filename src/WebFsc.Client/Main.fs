@@ -76,7 +76,7 @@ type Message =
     | SnippetLoaded of string
 
 /// Update the application model.
-let update (http: HttpClient) message model =
+let update js (http: HttpClient) message model =
     match message with
     | SetText text ->
         { model with Text = text },
@@ -95,8 +95,8 @@ let update (http: HttpClient) message model =
             Messages = compiler.Messages
         },
         Cmd.batch [
-            Cmd.attemptFunc ScreenOut.Clear () Error
-            Cmd.ofAsync (run >> ScreenOut.Wrap) () RunFinished Error
+            Cmd.attemptFunc ScreenOut.Clear js Error
+            Cmd.ofAsync (run >> ScreenOut.Wrap js) () RunFinished Error
         ]
     | Compiled compiler ->
         { model with
@@ -104,13 +104,13 @@ let update (http: HttpClient) message model =
             Compiler = compiler
             Messages = compiler.Messages
         },
-        Cmd.attemptFunc ScreenOut.Clear () Error
+        Cmd.attemptFunc ScreenOut.Clear js Error
     | RunFinished executor ->
         { model with Executor = executor },
         []
     | Checked (compiler, errors) ->
         { model with Compiler = compiler; Messages = errors },
-        Cmd.attemptFunc Ace.SetAnnotations errors Error
+        Cmd.attemptFunc (Ace.SetAnnotations js) errors Error
     | Complete (line, col, lineText, callback) ->
         model.LatestCompleter |> Option.iter (fun d -> d.Dispose())
         { model with LatestCompleter = None },
@@ -124,10 +124,10 @@ let update (http: HttpClient) message model =
         { model with
             Exception = Some exn
             Compiler = model.Compiler.MarkAsFailedIfRunning() },
-        Cmd.attemptFunc ScreenOut.Clear () Error
+        Cmd.attemptFunc ScreenOut.Clear js Error
     | SelectMessage message ->
         model,
-        Cmd.attemptFunc Ace.SelectMessage message Error
+        Cmd.attemptFunc (Ace.SelectMessage js) message Error
     | LoadSnippet snippetId ->
         { model with SelectedSnippet = snippetId },
         Cmd.ofTask
@@ -138,8 +138,8 @@ let update (http: HttpClient) message model =
         model,
         Cmd.attemptFunc
             (fun () ->
-                JS.Invoke<unit>("WebFsc.setText", text)
-                JS.Invoke<unit>("WebFsc.setQueryParam", "snippet", model.SelectedSnippet)
+                js.Invoke<unit>("WebFsc.setText", text)
+                js.Invoke<unit>("WebFsc.setQueryParam", "snippet", model.SelectedSnippet)
             ) () Error
 
 type Main = Template<"main.html">

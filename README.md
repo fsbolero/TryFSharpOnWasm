@@ -9,3 +9,5 @@ Uses Bolero - F# Tools for Blazor, see [website](https://fsbolero.io/) and [repo
 ## Building this project
 
 First run `install.ps1` in Powershell. Then you can open the solution in your IDE of choice.
+
+The server project `WebFsc.Server` is just here for developer convenience (hot reloading, MIME type for *.fsx); the actual deployed project is `WebFsc.Client`.
