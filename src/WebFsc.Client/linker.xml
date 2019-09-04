@@ -18,11 +18,5 @@
   <assembly fullname="System.Runtime.Extensions"></assembly>
   <assembly fullname="System.Threading.Tasks"></assembly>
   <assembly fullname="System.Xml.Linq"></assembly>
-
-  <!-- Copy from microsoft.aspnetcore.blazor.build's BuiltInBclLinkerDescriptor.xml -->
-  <assembly fullname="mscorlib">
-    <!-- Preserve all methods on WasmRuntime, because these are called by JS-side code
-    to implement timers. Fixes https://github.com/aspnet/Blazor/issues/239 -->
-    <type fullname="System.Threading.WasmRuntime" />
-  </assembly>
+  <assembly fullname="mscorlib"></assembly>
 </linker>
