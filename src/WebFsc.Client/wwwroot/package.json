@@ -18,6 +18,7 @@
   "homepage": "https://github.com/fsbolero/tryfsharponwasm#readme",
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^5.9.0",
-    "bulma": "^0.7.5"
+    "bulma": "^0.7.5",
+    "bulma-quickview": "^2.0.0"
   }
 }

@@ -6,5 +6,6 @@ paket-files/
 .vs/
 *.user
 publish/
+src/WebFsc.Client/wwwroot/webfonts/
 src/WebFsc.Client/wwwroot/node_modules/
-src/WebFsc.Client/wwwroot/css/*
+src/WebFsc.Client/wwwroot/css/

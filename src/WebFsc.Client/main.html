@@ -1,6 +1,11 @@
 <nav class="navbar is-dark">
   <div class="navbar-brand">
-    <a class="navbar-item" href="https://github.com/fsbolero/Bolero">Bolero</a>
+    <a class="navbar-item" role="button" aria-label="menu" aria-expanded="false">
+      <i class="fas fa-bars"></i>
+    </a>
+    <h1 class="navbar-item">
+      Try F# on WebAssembly!
+    </h1>
     <div class="navbar-item">
       <div class="buttons">
         <a class="button is-success ${RunClass}" onclick="${Run}">Run</a>
@@ -13,6 +18,8 @@
         </select>
       </div>
     </div>
+    <div style="flex: 1"></div>
+    <a class="navbar-item" href="https://github.com/fsbolero/Bolero">Made with Bolero</a>
   </div>
 </nav>
 <section class="split-h">
