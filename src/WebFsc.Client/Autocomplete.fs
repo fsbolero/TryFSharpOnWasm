@@ -28,12 +28,12 @@ type Completion =
         caption: string
         value: string
         meta: string
-        cache: DotNetObjectRef
+        cache: DotNetObjectReference<CompletionCache>
         index: int
     }
 
 /// A set of autocomplete items, used to cache computed tooltips.
-type CompletionCache(items: FSharpDeclarationListItem[], js: IJSInProcessRuntime) =
+and CompletionCache(items: FSharpDeclarationListItem[], js: IJSInProcessRuntime) =
 
     let tooltips = Array.create items.Length None
 
@@ -69,7 +69,7 @@ type Autocompleter(dispatch: int * int * string * (FSharpDeclarationListItem[] -
     member this.Complete(line, col, lineText) =
         let tcs = TaskCompletionSource<Completion[]>()
         dispatch (line, col, lineText, fun items ->
-            let cache = new DotNetObjectRef(CompletionCache(items, js))
+            let cache = DotNetObjectReference.Create(CompletionCache(items, js))
             items
             |> Array.mapi (fun i item ->
                 {

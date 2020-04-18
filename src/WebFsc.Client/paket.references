@@ -1,5 +1,5 @@
 FSharp.Core
-Microsoft.AspNetCore.Blazor.Build
+Microsoft.AspNetCore.Components.WebAssembly.Build
 Bolero
 Bolero.FSharp.Compiler.Service
 Bolero.FSharp.Data

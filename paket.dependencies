@@ -4,14 +4,14 @@ source https://ci.appveyor.com/nuget/bolero
 source https://ci.appveyor.com/nuget/bolero-fsharp-data
 source https://daily.websharper.com/nuget # Bolero.FSharp.Compiler.Service is published here
 storage: none
-framework: netstandard2.0, netcoreapp3.0
+framework: netstandard2.1, netcoreapp3.1
 
 nuget Bolero prerelease
 nuget Bolero.HotReload prerelease
 nuget Bolero.Server prerelease
 nuget Bolero.FSharp.Compiler.Service
 nuget FSharp.Core ~> 4.5.0
-nuget Microsoft.AspNetCore.Blazor.Build prerelease
-nuget Microsoft.AspNetCore.Blazor.Server prerelease
+nuget Microsoft.AspNetCore.Components.WebAssembly.Build prerelease
+nuget Microsoft.AspNetCore.Components.WebAssembly.Server prerelease
 nuget Bolero.FSharp.Data >= 3.0 prerelease
 nuget BuildWebCompiler

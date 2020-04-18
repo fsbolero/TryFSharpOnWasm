@@ -1,3 +1,5 @@
+dotnet tool restore
+
 pushd src/WebFsc.Client/wwwroot
 npm install
 if (test-path webfonts) { rm -r webfonts }

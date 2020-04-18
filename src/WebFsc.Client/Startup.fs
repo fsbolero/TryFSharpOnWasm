@@ -18,24 +18,27 @@
 
 namespace WebFsc.Client
 
-open Microsoft.AspNetCore.Blazor.Hosting
-open Microsoft.AspNetCore.Components.Builder
+open System
+open System.Net.Http
+open Microsoft.AspNetCore.Components.WebAssembly.Hosting
 open Microsoft.Extensions.DependencyInjection
-
-type Startup() =
-
-    member __.ConfigureServices(services: IServiceCollection) =
-        ()
-
-    member __.Configure(app: IComponentsApplicationBuilder) =
-        app.AddComponent<App.MainApp>("#main")
 
 module Program =
 
+    let baseAddress =
+#if DEBUG
+        "http://localhost:8080/"
+#else
+        "https://tryfsharp.fsbolero.io/"
+#endif
+
     [<EntryPoint>]
     let Main args =
-        BlazorWebAssemblyHost.CreateDefaultBuilder()
-            .UseBlazorStartup<Startup>()
-            .Build()
-            .Run()
+        let builder = WebAssemblyHostBuilder.CreateDefault(args)
+        // TODO Why doesn't AddBaseAddressHttpClient work?
+        builder.Services.AddSingleton(new HttpClient(BaseAddress = Uri(baseAddress)))
+        |> ignore
+        // builder.Services.AddBaseAddressHttpClient() |> ignore
+        builder.RootComponents.Add<App.MainApp>("#main")
+        builder.Build().RunAsync() |> ignore
         0

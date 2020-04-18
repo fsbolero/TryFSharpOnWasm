@@ -63,7 +63,7 @@ let update (js: IJSInProcessRuntime) http message model =
             js.Invoke<unit>("WebFsc.initAce", "editor",
                 sourceDuringLoad snippetId,
                 Callback.Of onEdit,
-                new DotNetObjectRef(Autocompleter(dispatch << Message << Main.Complete, js)))
+                DotNetObjectReference.Create(Autocompleter(dispatch << Message << Main.Complete, js)))
             let onSetSnippet = dispatch << Message << Main.LoadSnippet << Option.defaultValue Main.defaultSnippetId << Option.ofObj
             Option.iter onSetSnippet snippetId
             js.ListenToQueryParam("snippet", onSetSnippet)

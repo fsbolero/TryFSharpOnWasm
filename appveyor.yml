@@ -10,6 +10,7 @@ init:
 build_script:
   - ps: ./install.ps1
   - ps: dotnet publish src/WebFsc.Client/ -o $PWD/publish/ -c Release
+  - ps: cp src/WebFsc.Client/blazor.webassembly.js publish/wwwroot/_framework/
 
 for:
   - branches:

@@ -1,8 +1,8 @@
-# pushes src/wwwroot to gh-pages branch
+# pushes publish/wwwroot to gh-pages branch
 
 param ([string] $env = "local")
 
-$msg = 'gh-pages.ps1: src/WebFsc.Client/wwwroot -> gh-pages'
+$msg = 'gh-pages.ps1: publish/wwwroot -> gh-pages'
 $gitURL = "https://github.com/fsbolero/TryFSharpOnWasm"
 
 write-host -foregroundColor "green" "=====> $msg"
@@ -32,7 +32,7 @@ if ($env -eq "appveyor") {
 }
 
 git rm -rf *
-cp -r -force ../../publish/WebFsc.Client/dist/* .
+cp -r -force ../../publish/wwwroot/* .
 [System.IO.File]::WriteAllText("$pwd/.nojekyll", "")
 [System.IO.File]::WriteAllText("$pwd/CNAME", "tryfsharp.fsbolero.io")
 git add . 2>git.log

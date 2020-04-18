@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <TypeScriptToolsVersion>3.3</TypeScriptToolsVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RazorLangVersion>3.0</RazorLangVersion>
+    <BoleroStripAssemblies>false</BoleroStripAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Utilities.fs" />
@@ -24,10 +26,13 @@
   <ItemGroup>
     <ProjectReference Include="..\WebFsc.Env\WebFsc.Env.fsproj" />
   </ItemGroup>
-  <Target Name="CopyCustomBlazor" AfterTargets="_BlazorCopyFilesToOutputDirectory">
+  <Target Name="CopyCustomBlazor">
     <!-- Lightly customized version of blazor.webassembly.js.
          Compiled from https://github.com/tarmil/blazor/tree/bolero -->
-    <Copy SourceFiles="blazor.webassembly.js" DestinationFolder="$(TargetDir)dist/_framework" />
+    <Copy SourceFiles="blazor.webassembly.js" DestinationFolder="$(TargetDir)wwwroot/_framework" />
   </Target>
+  <PropertyGroup>
+    <_BlazorCopyFilesToOutputDirectoryDependsOn>$(_BlazorCopyFilesToOutputDirectoryDependsOn);CopyCustomBlazor</_BlazorCopyFilesToOutputDirectoryDependsOn>
+  </PropertyGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

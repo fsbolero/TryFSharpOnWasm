@@ -16,6 +16,7 @@
   <assembly fullname="System.Reflection"></assembly>
   <assembly fullname="System.Runtime"></assembly>
   <assembly fullname="System.Runtime.Extensions"></assembly>
+  <assembly fullname="System.Threading"></assembly>
   <assembly fullname="System.Threading.Tasks"></assembly>
   <assembly fullname="System.Xml.Linq"></assembly>
   <assembly fullname="mscorlib"></assembly>

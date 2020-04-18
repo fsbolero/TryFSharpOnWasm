@@ -23,13 +23,12 @@ open System.IO
 open System.Threading
 open System.Threading.Tasks
 open Microsoft.JSInterop
-open Mono.WebAssembly.Interop
 
 /// A wrapper object to pass callback functions to JavaScript.
 type Callback =
 
     static member Of(f) =
-        new DotNetObjectRef(new StringCallback(f))
+        DotNetObjectReference.Create(new StringCallback(f))
 
 // Need to do separate concrete types because JSInterop doesn't support
 // generic JSInvokable methods.
