@@ -1,0 +1,11 @@
+[
+  {
+    "outputFile": "wwwroot/css/index.css",
+    "inputFile": "wwwroot/scss/all.scss",
+    "options": {
+      "includePath": "node_modules",
+      "sourceMap": true,
+      "sourceMapRoot": "."
+    }
+  }
+]
