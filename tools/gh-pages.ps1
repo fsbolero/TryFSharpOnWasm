@@ -33,8 +33,9 @@ if ($env -eq "appveyor") {
 
 git rm -rf *
 cp -r -force ../../publish/wwwroot/* .
-[System.IO.File]::WriteAllText("$pwd/.nojekyll", "")
-[System.IO.File]::WriteAllText("$pwd/CNAME", "tryfsharp.fsbolero.io")
+set-content "$pwd/.nojekyll" ""
+set-content "$pwd/CNAME" "tryfsharp.fsbolero.io"
+set-content "$pwd/.gitattributes" "* binary"
 git add . 2>git.log
 git commit --amend -am $msg
 git push -f -u origin gh-pages
