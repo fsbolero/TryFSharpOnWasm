@@ -22,16 +22,20 @@ type Startup() =
     let fileProvider path = new PhysicalFileProvider(path)
 
     member this.ConfigureServices(services: IServiceCollection) =
-        services.AddHotReload(clientProjPath)
-        |> ignore
+        services.AddControllers() |> ignore
+        services.AddHotReload(clientProjPath) |> ignore
 
     member this.Configure(app: IApplicationBuilder, env: IWebHostEnvironment) =
         app.UseStaticFiles(
             StaticFileOptions(
                 FileProvider = fileProvider (clientProjPath </> "wwwroot"),
                 ContentTypeProvider = contentTypeProvider))
-            .UseHotReload()
-            .UseBlazor<Client.Startup>()
+            .UseRouting()
+            .UseBlazorFrameworkFiles()
+            .UseEndpoints(fun endpoints ->
+                endpoints.UseHotReload()
+                endpoints.MapControllers() |> ignore
+                endpoints.MapFallbackToFile("index.html") |> ignore)
         |> ignore
 
 module Program =

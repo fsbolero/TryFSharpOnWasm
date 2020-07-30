@@ -81,11 +81,13 @@ module Compiler =
             "--target:exe"
             inFile
             // Necessary standard library
+            "-r:/tmp/FSharp.Core.dll"
             "-r:/tmp/mscorlib.dll"
             "-r:/tmp/netstandard.dll"
             "-r:/tmp/System.dll"
             "-r:/tmp/System.Core.dll"
             "-r:/tmp/System.IO.dll"
+            "-r:/tmp/System.Numerics.dll"
             "-r:/tmp/System.Runtime.dll"
             // Additional libraries we want to make available
             "-r:/tmp/System.Net.Http.dll"

@@ -6,6 +6,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RazorLangVersion>3.0</RazorLangVersion>
     <BoleroStripAssemblies>false</BoleroStripAssemblies>
+    <BlazorWebAssemblyEnableLinking>true</BlazorWebAssemblyEnableLinking>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Utilities.fs" />
@@ -18,6 +19,7 @@
     <Compile Include="Startup.fs" />
     <None Include="linker.xml" />
     <Content Include="main.html" />
+    <None Include="paket.references" />
     <BlazorLinkerDescriptor Include="linker.xml" />
     <Content Update="wwwroot/*.json">
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>

@@ -6,12 +6,13 @@ source https://daily.websharper.com/nuget # Bolero.FSharp.Compiler.Service is pu
 storage: none
 framework: netstandard2.1, netcoreapp3.1
 
-nuget Bolero prerelease
-nuget Bolero.HotReload prerelease
-nuget Bolero.Server prerelease
+nuget Bolero
+nuget Bolero.Server
+nuget Bolero.HotReload
+nuget Bolero.HotReload.Server
 nuget Bolero.FSharp.Compiler.Service
-nuget FSharp.Core ~> 4.5.0
-nuget Microsoft.AspNetCore.Components.WebAssembly.Build prerelease
-nuget Microsoft.AspNetCore.Components.WebAssembly.Server prerelease
+nuget FSharp.Core
+nuget Microsoft.AspNetCore.Components.WebAssembly.Build
+nuget Microsoft.AspNetCore.Components.WebAssembly.Server
 nuget Bolero.FSharp.Data >= 3.0 prerelease
 nuget BuildWebCompiler

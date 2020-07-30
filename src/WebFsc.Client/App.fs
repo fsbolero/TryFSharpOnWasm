@@ -94,6 +94,6 @@ type MainApp() =
             (fun _ -> Initializing, Cmd.ofMsg InitializeCompiler)
             (update (this.JSRuntime :?> _) this.Http) view
 #if DEBUG
-        |> Program.withHotReloading
+        |> Program.withHotReload
 #endif
 

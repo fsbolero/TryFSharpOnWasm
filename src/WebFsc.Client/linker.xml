@@ -13,6 +13,7 @@
   <assembly fullname="System.IO"></assembly>
   <assembly fullname="System.Linq.Expressions"></assembly>
   <assembly fullname="System.Net.Http"></assembly>
+  <assembly fullname="System.Numerics"></assembly>
   <assembly fullname="System.Reflection"></assembly>
   <assembly fullname="System.Runtime"></assembly>
   <assembly fullname="System.Runtime.Extensions"></assembly>
